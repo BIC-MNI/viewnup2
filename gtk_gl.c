@@ -463,10 +463,6 @@ gint gtkgl_motion_notify(GtkWidget * widget, GdkEventMotion * event, gpointer fu
       if(state & GDK_SHIFT_MASK){
          tmp = 1.0 + (delta_y / view->pix_size[1]);
 
-         // update_pi_trans(ptr, view->GLtrans_x * tmp, 
-         //                       view->GLtrans_y *= tmp, 
-         //                       view->GLtrans_z *= tmp);
-
          if(!view->lock_scale){
             update_pi_scale(ptr, view->GLscalefac * tmp);
             }
@@ -669,8 +665,6 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
 {
    Main_info *ptr = get_main_ptr();
    GLdouble tmp_m[4][4];
-   GLdouble max_dist = 0.0;
-   GLdouble eye_mult;
    int      c, i;
 
    GdkGLDrawable *gldrawable;
@@ -704,71 +698,29 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
 
    /* refresh the view if needed */
    if(view->refresh_view){
-      glMatrixMode(GL_PROJECTION);
+
+      /* refresh the modelling matrix */
+      glMatrixMode(GL_MODELVIEW);
       glLoadIdentity();
       
-      /* set up our viewport centred about the COV of the volume */
-      
-      /* find the max distance from corner to corner */
-      for(c = 0; c < 3; c++){
-         max_dist += SQR2(pane->stops[c] - pane->starts[c]);
-         }
-      max_dist = sqrt(max_dist);
-      
-      /* set up frustum or ortho view */
-      if(pane->perspective){
-         glFrustum(view->view_start[0], view->view_stop[0],
-                   view->view_start[1], view->view_stop[1],
-                   (max_dist * 0.01) * view->GLscalefac,
-                   (max_dist * 2.6) * view->GLscalefac);
-         }
-      else {
-         glOrtho(view->view_start[0], view->view_stop[0],
-                 view->view_start[1], view->view_stop[1],
-                 0.0,
-                 (max_dist*2 + 1) * view->GLscalefac);
-         }
-
-      /* Look at the COV */
-    //  gluLookAt(pane->cov[0],
-    //            pane->cov[1],
-    //            (pane->cov[2] + max_dist) * view->GLscalefac,
-    //            pane->cov[0], pane->cov[1], pane->cov[2], 
-    //            0, 1, 0);
-      gluLookAt(0,
-                0,
-                (0 + max_dist) * view->GLscalefac,
-                0, 0, 0, 
-                0, 1, 0);
-
-      //glTranslated(-pane->w[0], -pane->w[1], -pane->w[2]);
-      //build_rotmatrix(tmp_m, view->rot_quat);
-
-      //glMultMatrixd(&tmp_m[0][0]);
-      //vmult(tmp, pane->w, tmp_m);
-      //glTranslated(-tmp[0], -tmp[1], -tmp[2]);
-
-      //glGetDoublev(GL_PROJECTION_MATRIX,  &tmp_m[0][0]);
-      //g_print("matrix|%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][0], tmp_m[1][0], tmp_m[2][0], tmp_m[3][0]);
-      //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][1], tmp_m[1][1], tmp_m[2][1], tmp_m[3][1]);
-      //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][2], tmp_m[1][2], tmp_m[2][2], tmp_m[3][2]);
-      //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][3], tmp_m[1][3], tmp_m[2][3], tmp_m[3][3]);
-
-      /* rotate about the current co-ordinate, scale and translate */
+      /* rotate */
       glRotated(-view->rot_phi * 180 / M_PI, view->rot_vec[0], view->rot_vec[1],
                 view->rot_vec[2]);
 
-      /* scale about the current world position */
+      /* scale about the current translated world position */
+      glTranslated(pane->w[0] + view->GLtrans_x, 
+                   pane->w[1] + view->GLtrans_y, 
+                   pane->w[2] + view->GLtrans_z);
       glScaled(view->GLscalefac, view->GLscalefac, view->GLscalefac);
-
+      glTranslated(-(pane->w[0] + view->GLtrans_x), 
+                   -(pane->w[1] + view->GLtrans_y), 
+                   -(pane->w[2] + view->GLtrans_z));
+      
+      /* translate to current co-ordinate */
       glTranslated(view->GLtrans_x, view->GLtrans_y, view->GLtrans_z);
-      glGetDoublev(GL_PROJECTION_MATRIX, view->projMatrix);
-
-      /* set the viewing position to the identity matrix */
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
+      
+      /* store the model matrix for later reference */
       glGetDoublev(GL_MODELVIEW_MATRIX, view->modelMatrix);
-
       view->refresh_view = FALSE;
       }
 
@@ -905,6 +857,8 @@ gint gtkgl_reshape(GtkWidget * widget, GdkEventConfigure * event, gpointer func_
    GdkGLContext *glcontext;
    GLdouble world_h, world_w, world_b, world_l;
    GLdouble tmp;
+   GLdouble max_dist = 0.0;
+   int c;
 
    /* Get pointer to gtkgl_info */
    Pane_info pane = ((GtkGL_info *) func_data)->pane;
@@ -965,6 +919,43 @@ gint gtkgl_reshape(GtkWidget * widget, GdkEventConfigure * event, gpointer func_
 //   g_print("+++ PIX_SIZE[0|1] %g|%g\n", view->pix_size[0], view->pix_size[1]);
    g_print("+++ TYPE[%d]  world_{w|h|l|b} %g|%g|%g|%g  tmp: %g\n", view->type, world_w, world_h, world_l, world_b, tmp); 
    g_print("+++ view_start|stop[0] %g|%g  view_start|stop[1] %g|%g\n", view->view_start[0], view->view_stop[0], view->view_start[1], view->view_stop[1]); 
+   
+   /* set up projection transformation */
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+
+   /* find the max distance from corner to corner */
+   for(c = 0; c < 3; c++){
+      max_dist += SQR2(pane->stops[c] - pane->starts[c]);
+      }
+   max_dist = sqrt(max_dist);
+
+   /* set up frustum or ortho view */
+   if(pane->perspective){
+      glFrustum(view->view_start[0], view->view_stop[0],
+                view->view_start[1], view->view_stop[1],
+                (max_dist * 1.5) * view->GLscalefac,
+                (max_dist * 2.6) * view->GLscalefac);
+      }
+   else {
+      glOrtho(view->view_start[0], view->view_stop[0],
+              view->view_start[1], view->view_stop[1],
+              0.0,
+              (max_dist*2 + 1) * view->GLscalefac);
+      }
+
+   /* Look at the COV */
+ //  gluLookAt(pane->cov[0],
+ //            pane->cov[1],
+ //            (pane->cov[2] + max_dist) * view->GLscalefac,
+ //            pane->cov[0], pane->cov[1], pane->cov[2], 
+ //            0, 1, 0);
+   gluLookAt(0, 0, max_dist * view->GLscalefac,
+             0, 0, 0, 
+             0, 1, 0);
+
+   /* store this matrix for later reference */
+   glGetDoublev(GL_PROJECTION_MATRIX, view->projMatrix);
    
    /* glEnd */
    gdk_gl_drawable_gl_end(gldrawable);
