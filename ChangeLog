@@ -1,0 +1,44 @@
+TODO list for viewnup
+
+* Support for config files (aka JIV)
+   - example config files
+   - with or without a filename (framework style config)
+      that would take filenames from C/L
+   - #!/bin'erise them so that others can abuse
+      them for their own needs.
+   - everything that can be done in the GUI can be done
+      in the config file (essentially a dump of the
+      internal pane representation)
+   - XML? maybee? for "styles"
+
+* Realine tab-aware file name input
+
+* Image information (x,y,z,pixel value, voxel value, Left/Right etc)
+    will be display in the bottom corner of an image aka most
+    commercial radiological viewers.
+
+* Panes will be "minimisable" (yes, I'm an ozzie, I don't use z's)
+    (yes there is some irony there)
+
+* Plots of intensity values? aka postf via a sub-window. 
+
+*  remove all gtk_widget_set_usize() calls 
+   these should be gtk_window_set_default_size() or equivalent
+
+*  convert dialog windows to real dialogs (using gtk_dialog_new() )
+
+===CHANGELOG===
+
+Tue Mar 25 13:18:58 EST 2003
+   * started on viewnup2 based upon GTK2.0
+   * removed all automakification/autonconfiscation rot
+      this may be put back in later (and may not!)
+
+Fri Apr  4 11:53:52 EST 2003
+   * chaged from gtk_signals to g_signals (gobject)
+   * began shift from gtkglarea to gtkglext
+   * removed all instances (except pane resize) of gtk_widget_set_usize()
+   * Removed popt for the time being untill the GTK+ group
+       decides upon a C/L parser of choice that will probably be
+       incorporated into glib.
+   
