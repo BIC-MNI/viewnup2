@@ -42,7 +42,7 @@ static GtkItemFactoryEntry menu_items[] = {
    {"/Help/Manual...", NULL, manual_activate, 0, "<Item>"},
 };
 
-/* Returns a menubar widget made from the above menu  -- from GTK2.0 tutorial */
+/* Returns a menubar widget from the above array -- from the GTK2.0 tutorial */
 static GtkWidget *get_menubar_menu(GtkWidget *window)
 {
    GtkItemFactory *item_factory;
@@ -51,32 +51,21 @@ static GtkWidget *get_menubar_menu(GtkWidget *window)
    /* get the number of menu items */
    gint     nmenu_items = sizeof(menu_items) / sizeof(menu_items[0]);
 
-   /* Make an accelerator group (shortcut keys) */
    accel_group = gtk_accel_group_new();
-
-   /* Make an ItemFactory (that makes a menubar) */
    item_factory = gtk_item_factory_new(GTK_TYPE_MENU_BAR, "<main>", accel_group);
-
-   /* This function generates the menu items. Pass the item factory,
-      the number of items in the array, the array itself, and any
-      callback data for the the menu items. */
    gtk_item_factory_create_items(item_factory, nmenu_items, menu_items, NULL);
-
-   /* Attach the new accelerator group to the window. */
    gtk_window_add_accel_group(GTK_WINDOW(window), accel_group);
-
-   /* Finally, return the actual menu bar created by the item factory. */
+   
    return gtk_item_factory_get_widget(item_factory, "<main>");
    }
 
 /* delete a views widgets */
 void delete_view_widgets(Pane_info pane, View_info view)
 {
-
    /* first remove the glarea from the frame */
-   gtk_widget_ref(GTK_WIDGET(view->glarea));
-   gtk_container_remove(GTK_CONTAINER(view->view_frame), GTK_WIDGET(view->glarea));
-   gtk_widget_destroy(GTK_WIDGET(view->glarea));
+   gtk_widget_ref(GTK_WIDGET(view->gtkgl_widget));
+   gtk_container_remove(GTK_CONTAINER(view->view_frame), GTK_WIDGET(view->gtkgl_widget));
+   gtk_widget_destroy(GTK_WIDGET(view->gtkgl_widget));
 
    /* then the frame itself */
    gtk_widget_ref(GTK_WIDGET(view->view_frame));
@@ -87,17 +76,16 @@ void delete_view_widgets(Pane_info pane, View_info view)
 /* create and show the widgets for a view */
 void create_view_widgets(Main_info * ptr, Pane_info pane, View_info view)
 {
-
    view->view_frame = gtk_frame_new(NULL);
    gtk_widget_show(view->view_frame);
    gtk_box_pack_start(GTK_BOX(pane->vbox_img), view->view_frame, TRUE, TRUE, 0);
    gtk_frame_set_shadow_type(GTK_FRAME(view->view_frame), GTK_SHADOW_ETCHED_IN);
    gtk_widget_set_style(GTK_WIDGET(view->view_frame), ptr->view_normal_style);
 
-   view->glarea = create_glarea(pane, view);
-   gtk_widget_show(view->glarea);
-   gtk_container_add(GTK_CONTAINER(view->view_frame), view->glarea);
-   GTK_WIDGET_SET_FLAGS(view->glarea, GTK_CAN_FOCUS);
+   view->gtkgl_widget = create_gtkgl_widget(ptr, pane, view);
+   gtk_widget_show(view->gtkgl_widget);
+   gtk_container_add(GTK_CONTAINER(view->view_frame), view->gtkgl_widget);
+   GTK_WIDGET_SET_FLAGS(view->gtkgl_widget, GTK_CAN_FOCUS);
    }
 
 /* delete a panes widgets */
@@ -109,14 +97,12 @@ void delete_pane_widgets(Main_info * ptr, Pane_info pane)
    for(c = 0; c < pane->views->len; c++){
       delete_view_widgets(pane, g_ptr_array_index(pane->views, c));
       }
-
    }
 
 /* create and show the widgets for a pane */
 void create_pane_widgets(Main_info * ptr, Pane_info pane)
 {
-
-   GSList  *_1_group = NULL;
+   GSList  *cmap_group;
 
    pane->hbox_pane = gtk_hbox_new(FALSE, 0);
    gtk_widget_show(pane->hbox_pane);
@@ -126,81 +112,61 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
    gtk_widget_show(pane->vbox_pane);
    gtk_box_pack_start(GTK_BOX(pane->hbox_pane), pane->vbox_pane, TRUE, TRUE, 0);
 
-   pane->eventbox_label = gtk_event_box_new();
-   gtk_widget_show(pane->eventbox_label);
-   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->eventbox_label, FALSE, TRUE, 0);
-
-   pane->hbox_label = gtk_hbox_new(FALSE, 0);
-   gtk_widget_show(pane->hbox_label);
-   gtk_container_add(GTK_CONTAINER(pane->eventbox_label), pane->hbox_label);
+   pane->hbox_header = gtk_hbox_new(FALSE, 0);
+   gtk_widget_show(pane->hbox_header);
+   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hbox_header, FALSE, TRUE, 0);
 
    /* left button and arrow */
    pane->left_button = gtk_button_new();
    gtk_widget_show(pane->left_button);
-   gtk_box_pack_start(GTK_BOX(pane->hbox_label), pane->left_button, FALSE, TRUE, 0);
-   gtk_button_set_relief(GTK_BUTTON(pane->left_button), GTK_RELIEF_NONE);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_header), pane->left_button, FALSE, TRUE, 0);
    gtk_tooltips_set_tip(ptr->tooltips, pane->left_button, _("Move this pane left"), NULL);
 
    pane->arrow_left = gtk_arrow_new(GTK_ARROW_LEFT, GTK_SHADOW_OUT);
    gtk_widget_show(pane->arrow_left);
    gtk_container_add(GTK_CONTAINER(pane->left_button), pane->arrow_left);
-   gtk_misc_set_padding(GTK_MISC(pane->arrow_left), 2, 2);
 
    /* sync button */
    pane->sync_button = gtk_button_new_with_label(_("S:-"));
    gtk_widget_show(pane->sync_button);
-   gtk_box_pack_start(GTK_BOX(pane->hbox_label), pane->sync_button, FALSE, TRUE, 0);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_header), pane->sync_button, FALSE, TRUE, 0);
    gtk_tooltips_set_tip(ptr->tooltips, pane->sync_button, _("Sync container to use"),
                         NULL);
+   
+   /* file entry */
+   pane->file_open_combo = gtk_combo_new();
+   gtk_widget_show(pane->file_open_combo);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_header), pane->file_open_combo, TRUE, TRUE, 0);
+   
+   pane->file_open_button = gtk_button_new();
+   gtk_widget_show(pane->file_open_button);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_header), pane->file_open_button, FALSE, TRUE, 0);
 
-   /* pane label */
-   pane->pane_label = gtk_label_new(NULL);
-   gtk_widget_show(pane->pane_label);
-   gtk_box_pack_start(GTK_BOX(pane->hbox_label), pane->pane_label, TRUE, TRUE, 0);
-   gtk_label_set_line_wrap(GTK_LABEL(pane->pane_label), TRUE);
-
-   /* minimise button */
-   pane->minimise_button = gtk_button_new();
-   gtk_widget_show(pane->minimise_button);
-   gtk_box_pack_start(GTK_BOX(pane->hbox_label), pane->minimise_button, FALSE, FALSE, 0);
-   gtk_button_set_relief(GTK_BUTTON(pane->minimise_button), GTK_RELIEF_NONE);
-
-   pane->minimise_pixmap = create_pixmap(ptr->main_widget, SLIDE_PIXMAP);
-   gtk_widget_show(pane->minimise_pixmap);
-   gtk_container_add(GTK_CONTAINER(pane->minimise_button), pane->minimise_pixmap);
+   pane->file_open_pixmap = gtk_image_new_from_stock("gtk-open", GTK_ICON_SIZE_MENU);
+   gtk_widget_show(pane->file_open_pixmap);
+   gtk_container_add(GTK_CONTAINER(pane->file_open_button), pane->file_open_pixmap);
 
    /* close button */
    pane->close_button = gtk_button_new();
    gtk_widget_show(pane->close_button);
-   gtk_box_pack_start(GTK_BOX(pane->hbox_label), pane->close_button, FALSE, FALSE, 0);
-   gtk_button_set_relief(GTK_BUTTON(pane->close_button), GTK_RELIEF_NONE);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_header), pane->close_button, FALSE, FALSE, 0);
 
-   pane->close_pixmap = create_pixmap(ptr->main_widget, CLOSE_PIXMAP);
+   pane->close_pixmap = gtk_image_new_from_stock("gtk-delete", GTK_ICON_SIZE_MENU);
    gtk_widget_show(pane->close_pixmap);
    gtk_container_add(GTK_CONTAINER(pane->close_button), pane->close_pixmap);
 
-   /* right button and label */
+   /* right button and arrow */
    pane->right_button = gtk_button_new();
    gtk_widget_show(pane->right_button);
-   gtk_box_pack_start(GTK_BOX(pane->hbox_label), pane->right_button, FALSE, TRUE, 0);
-   gtk_button_set_relief(GTK_BUTTON(pane->right_button), GTK_RELIEF_NONE);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_header), pane->right_button, FALSE, TRUE, 0);
    gtk_tooltips_set_tip(ptr->tooltips, pane->right_button, _("Move this pane Right"),
                         NULL);
 
    pane->arrow_right = gtk_arrow_new(GTK_ARROW_RIGHT, GTK_SHADOW_OUT);
    gtk_widget_show(pane->arrow_right);
    gtk_container_add(GTK_CONTAINER(pane->right_button), pane->arrow_right);
-   gtk_misc_set_padding(GTK_MISC(pane->arrow_right), 2, 2);
 
-   pane->hsep_0 = gtk_hseparator_new();
-   gtk_widget_show(pane->hsep_0);
-   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hsep_0, FALSE, TRUE, 0);
-
-   pane->vbox_img = gtk_vbox_new(TRUE, 0);
-   gtk_widget_show(pane->vbox_img);
-   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->vbox_img, TRUE, TRUE, 0);
-
-   /* top row callbacks */
+   /* header callbacks */
    g_signal_connect(G_OBJECT(pane->left_button), "clicked",
                     G_CALLBACK(left_button_clicked), pane);
    g_signal_connect(G_OBJECT(pane->right_button), "clicked",
@@ -208,11 +174,14 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
    g_signal_connect(G_OBJECT(pane->sync_button), "clicked",
                     G_CALLBACK(sync_button_clicked), pane);
 
-   /* back to normal programming */
-   pane->hsep_1 = gtk_hseparator_new();
-   gtk_widget_show(pane->hsep_1);
-   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hsep_1, FALSE, TRUE, 0);
-
+   g_signal_connect(G_OBJECT(GTK_COMBO(pane->file_open_combo)->entry), "activate",
+                    G_CALLBACK(file_open_entry_activate), pane);
+   
+   /* vbox for gtkgl widgets */
+   pane->vbox_img = gtk_vbox_new(TRUE, 0);
+   gtk_widget_show(pane->vbox_img);
+   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->vbox_img, TRUE, TRUE, 0);
+   
    /* voxel and ROi value */
    if(!pane->merge){
       pane->hbox_values = gtk_hbox_new(TRUE, 0);
@@ -232,7 +201,7 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
       pane->vox_value = gtk_entry_new();
       gtk_widget_show(pane->vox_value);
       gtk_box_pack_start(GTK_BOX(pane->hbox_values_vox), pane->vox_value, TRUE, TRUE, 0);
-      gtk_entry_set_editable(GTK_ENTRY(pane->vox_value), FALSE);
+      gtk_editable_set_editable(GTK_EDITABLE(pane->vox_value), FALSE);
 
       pane->hbox_values_roi = gtk_hbox_new(FALSE, 0);
       gtk_widget_show(pane->hbox_values_roi);
@@ -246,7 +215,7 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
       pane->roi_value = gtk_entry_new();
       gtk_widget_show(pane->roi_value);
       gtk_box_pack_start(GTK_BOX(pane->hbox_values_roi), pane->roi_value, TRUE, TRUE, 0);
-      gtk_entry_set_editable(GTK_ENTRY(pane->roi_value), FALSE);
+      gtk_editable_set_editable(GTK_EDITABLE(pane->roi_value), FALSE);
 
       g_signal_connect(G_OBJECT(pane->vox_value_button), "clicked",
                        G_CALLBACK(vox_value_button_clicked), pane);
@@ -255,10 +224,6 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
       }
 
    /* coordinates */
-   pane->hsep_2 = gtk_hseparator_new();
-   gtk_widget_show(pane->hsep_2);
-   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hsep_2, FALSE, TRUE, 0);
-
    pane->hbox_coord = gtk_hbox_new(FALSE, 0);
    gtk_widget_show(pane->hbox_coord);
    gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hbox_coord, FALSE, TRUE, 0);
@@ -293,22 +258,22 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
 
    pane->coord_wx = gtk_spin_button_new(NULL, 1, 2);
    gtk_box_pack_start(GTK_BOX(pane->hbox_coord), pane->coord_wx, TRUE, TRUE, 0);
-   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wx, _("Voxel X-Coordinate"), NULL);
+   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wx, _("World X-Coordinate"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pane->coord_wx), TRUE);
 
    pane->coord_wy = gtk_spin_button_new(NULL, 1, 2);
    gtk_box_pack_start(GTK_BOX(pane->hbox_coord), pane->coord_wy, TRUE, TRUE, 0);
-   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wy, _("Voxel Y-Coordinate"), NULL);
+   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wy, _("World Y-Coordinate"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pane->coord_wy), TRUE);
 
    pane->coord_wz = gtk_spin_button_new(NULL, 1, 2);
    gtk_box_pack_start(GTK_BOX(pane->hbox_coord), pane->coord_wz, TRUE, TRUE, 0);
-   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wz, _("Voxel Z Coordinate"), NULL);
+   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wz, _("World Z Coordinate"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pane->coord_wz), TRUE);
 
    pane->coord_wt = gtk_spin_button_new(NULL, 1, 2);
    gtk_box_pack_start(GTK_BOX(pane->hbox_coord), pane->coord_wt, TRUE, TRUE, 0);
-   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wt, _("Voxel Time/Vector Coordinate"),
+   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_wt, _("World Time/Vector Coordinate"),
                         NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pane->coord_wt), TRUE);
 
@@ -330,10 +295,6 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
                     G_CALLBACK(wz_coord_changed), pane);
    g_signal_connect(G_OBJECT(pane->coord_wt), "changed",
                     G_CALLBACK(wt_coord_changed), pane);
-
-   pane->hsep_3 = gtk_hseparator_new();
-   gtk_widget_show(pane->hsep_3);
-   gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hsep_3, FALSE, TRUE, 0);
 
    if(!pane->merge){
       /* cmap range widgets. Init range widgets with a NULL adjustment */
@@ -380,8 +341,7 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
       gtk_widget_show(pane->hbox_cmap);
       gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hbox_cmap, FALSE, TRUE, 0);
 
-      pane->cmap_grey_radio = gtk_radio_button_new_with_label(_1_group, _("grey"));
-      _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pane->cmap_grey_radio));
+      pane->cmap_grey_radio = gtk_radio_button_new_with_label(NULL, _("grey"));
       gtk_widget_show(pane->cmap_grey_radio);
       gtk_box_pack_start(GTK_BOX(pane->hbox_cmap), pane->cmap_grey_radio, FALSE, TRUE, 0);
       gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_grey_radio,
@@ -389,16 +349,16 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pane->cmap_grey_radio), TRUE);
       gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pane->cmap_grey_radio), FALSE);
 
-      pane->cmap_hot_radio = gtk_radio_button_new_with_label(_1_group, _("hot"));
-      _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pane->cmap_hot_radio));
+      cmap_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(pane->cmap_grey_radio));
+
+      pane->cmap_hot_radio = gtk_radio_button_new_with_label(cmap_group, _("hot"));
       gtk_widget_show(pane->cmap_hot_radio);
       gtk_box_pack_start(GTK_BOX(pane->hbox_cmap), pane->cmap_hot_radio, FALSE, TRUE, 0);
       gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_hot_radio, _("HotMetal Colourmap"),
                            NULL);
       gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pane->cmap_hot_radio), FALSE);
 
-      pane->cmap_spect_radio = gtk_radio_button_new_with_label(_1_group, _("spect"));
-      _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pane->cmap_spect_radio));
+      pane->cmap_spect_radio = gtk_radio_button_new_with_label(cmap_group, _("spect"));
       gtk_widget_show(pane->cmap_spect_radio);
       gtk_box_pack_start(GTK_BOX(pane->hbox_cmap), pane->cmap_spect_radio, FALSE, TRUE,
                          0);
@@ -406,8 +366,8 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
                            NULL);
       gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pane->cmap_spect_radio), FALSE);
 
-      pane->cmap_bluered_radio = gtk_radio_button_new_with_label(_1_group, _("bluered"));
-      _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pane->cmap_bluered_radio));
+      pane->cmap_bluered_radio =
+         gtk_radio_button_new_with_label(cmap_group, _("bluered"));
       gtk_widget_show(pane->cmap_bluered_radio);
       gtk_box_pack_start(GTK_BOX(pane->hbox_cmap), pane->cmap_bluered_radio, FALSE, TRUE,
                          0);
@@ -423,7 +383,7 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
 
       pane->cmap_combo_entry = GTK_COMBO(pane->cmap_combo)->entry;
       gtk_widget_show(pane->cmap_combo_entry);
-      gtk_entry_set_editable(GTK_ENTRY(pane->cmap_combo_entry), FALSE);
+      gtk_editable_set_editable(GTK_EDITABLE(pane->cmap_combo_entry), FALSE);
       gtk_entry_set_text(GTK_ENTRY(pane->cmap_combo_entry), _("grey"));
 
       g_signal_connect(G_OBJECT(pane->range_min_val), "changed",
@@ -440,28 +400,6 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
                        G_CALLBACK(cmap_bluered_radio_clicked), pane);
       g_signal_connect(G_OBJECT(pane->cmap_combo_entry), "changed",
                        G_CALLBACK(cmap_combo_entry_changed), pane);
-
-      /* file entry */
-      pane->hsep_4 = gtk_hseparator_new();
-      gtk_widget_show(pane->hsep_4);
-      gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hsep_4, FALSE, TRUE, 0);
-
-      pane->hbox_file_open = gtk_hbox_new(FALSE, 0);
-      gtk_widget_show(pane->hbox_file_open);
-      gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hbox_file_open, FALSE, TRUE, 0);
-
-//      pane->file_open = gnome_file_entry_new(NULL, _("open MINC file"));
-//      gtk_widget_show(pane->file_open);
-//      gtk_box_pack_start(GTK_BOX(pane->hbox_file_open), pane->file_open, TRUE, TRUE, 0);
-
-//      pane->file_open_combo =
-//         gnome_file_entry_gtk_entry(GNOME_FILE_ENTRY(pane->file_open));
-//      gtk_widget_show(pane->file_open_combo);
-//      gtk_tooltips_set_tip(ptr->tooltips, pane->file_open_combo,
-//                           _("The currently open file"), NULL);
-
-//      g_signal_connect(G_OBJECT(pane->file_open_combo), "activate",
-//                         G_CALLBACK(file_open_combo_activate), pane);
       }
 
    /* active separator - drag-able */
@@ -491,9 +429,7 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
 
 GtkWidget *create_viewnup_main(Main_info * ptr)
 {
-
    GtkWidget *viewnup_main;
-   GtkWidget *v_viewnup_main;
 
    GtkWidget *menu_toolbar_hbox;
    GtkWidget *menu_handlebox;
@@ -502,25 +438,22 @@ GtkWidget *create_viewnup_main(Main_info * ptr)
    GtkWidget *toolbar;
    GtkWidget *statusbar_handlebox;
    GtkWidget *statusbar_hbox;
-   GtkObject *progressbar_adj;
 
-   GtkWidget *body;
    GtkWidget *scrolledwindow;
 
    viewnup_main = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    gtk_window_set_title(GTK_WINDOW(viewnup_main), _("viewnup"));
    gtk_window_set_position(GTK_WINDOW(viewnup_main), GTK_WIN_POS_CENTER);
-   gtk_window_set_default_size(GTK_WINDOW(viewnup_main), 918, 720);
-   gtk_window_set_policy(GTK_WINDOW(viewnup_main), TRUE, TRUE, TRUE);
+   gtk_window_set_default_size(GTK_WINDOW(viewnup_main), 900, 750);
 
-   v_viewnup_main = gtk_vbox_new(FALSE, 0);
-   gtk_widget_show(v_viewnup_main);
-   gtk_container_add(GTK_CONTAINER(viewnup_main), v_viewnup_main);
+   ptr->main_vbox = gtk_vbox_new(FALSE, 0);
+   gtk_widget_show(ptr->main_vbox);
+   gtk_container_add(GTK_CONTAINER(viewnup_main), ptr->main_vbox);
 
    /* top hbox for menu/toolbar/statusbar */
    menu_toolbar_hbox = gtk_hbox_new(FALSE, 0);
    gtk_widget_show(menu_toolbar_hbox);
-   gtk_box_pack_start(GTK_BOX(v_viewnup_main), menu_toolbar_hbox, FALSE, FALSE, 0);
+   gtk_box_pack_start(GTK_BOX(ptr->main_vbox), menu_toolbar_hbox, FALSE, FALSE, 0);
 
    /* menubar stuff */
    menu_handlebox = gtk_handle_box_new();
@@ -559,21 +492,14 @@ GtkWidget *create_viewnup_main(Main_info * ptr)
    gtk_box_pack_start(GTK_BOX(statusbar_hbox), ptr->statusbar, TRUE, TRUE, 0);
 
    /* progressbar */
-   progressbar_adj = gtk_adjustment_new(0.0, 0.0, 1.0, 0.01, 0.1, 0.01);
-   ptr->progressbar =
-      gtk_progress_bar_new_with_adjustment(GTK_ADJUSTMENT(progressbar_adj));
+   ptr->progressbar = gtk_progress_bar_new();
    gtk_widget_show(ptr->progressbar);
    gtk_box_pack_start(GTK_BOX(statusbar_hbox), ptr->progressbar, FALSE, TRUE, 0);
 
-
-   /* viewnup_main body code */
-   body = gtk_hbox_new(FALSE, 0);
-   gtk_widget_show(body);
-   gtk_box_pack_start(GTK_BOX(v_viewnup_main), body, TRUE, TRUE, 0);
-
+   /* main viewing window */
    scrolledwindow = gtk_scrolled_window_new(NULL, NULL);
    gtk_widget_show(scrolledwindow);
-   gtk_box_pack_start(GTK_BOX(body), scrolledwindow, TRUE, TRUE, 0);
+   gtk_box_pack_start(GTK_BOX(ptr->main_vbox), scrolledwindow, TRUE, TRUE, 0);
    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwindow),
                                   GTK_POLICY_AUTOMATIC, GTK_POLICY_NEVER);
 
@@ -582,7 +508,7 @@ GtkWidget *create_viewnup_main(Main_info * ptr)
    gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolledwindow),
                                          ptr->pane_hbody);
 
-   gtk_object_set_data(GTK_OBJECT(viewnup_main), "tooltips", ptr->tooltips);
+   g_object_set_data(G_OBJECT(viewnup_main), "tooltips", ptr->tooltips);
 
    return viewnup_main;
    }
@@ -606,10 +532,18 @@ GtkWidget *create_synch_table(Main_info * ptr)
    GtkWidget *synch_x_label;
 
    GtkWidget *synch_add_button;
-   GtkWidget *synch_add_pixmap;
    GtkWidget *synch_add_separator;
+   GtkWidget *synch_remove_button;
+   GtkWidget *synch_remove_image;
+
+   GtkWidget *synch_scale_image;
+   GtkWidget *synch_rotation_image;
+   GtkWidget *synch_translation_image;
+   GtkWidget *synch_tilt_image;
 
    table = gtk_table_new(ptr->n_synchs + 2, 10, FALSE);
+   gtk_widget_show(table);
+   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
 
    /* add labels */
    synch_x_label = gtk_label_new(_("x"));
@@ -677,50 +611,46 @@ GtkWidget *create_synch_table(Main_info * ptr)
       gtk_table_attach(GTK_TABLE(table), sync->synch_scale_button, 5, 6, c + 1, c + 2,
                        (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
 
-      sync->synch_scale_pixmap = create_pixmap(ptr->synch_dialog, SCALE_PIXMAP);
-      gtk_widget_show(sync->synch_scale_pixmap);
-      gtk_container_add(GTK_CONTAINER(sync->synch_scale_button),
-                        sync->synch_scale_pixmap);
+      synch_scale_image = create_pixmap(ptr->synch_dialog, SCALE_PIXMAP);
+      gtk_widget_show(synch_scale_image);
+      gtk_container_add(GTK_CONTAINER(sync->synch_scale_button), synch_scale_image);
 
       sync->synch_rotation_button = gtk_toggle_button_new();
       gtk_widget_show(sync->synch_rotation_button);
       gtk_table_attach(GTK_TABLE(table), sync->synch_rotation_button, 6, 7, c + 1, c + 2,
                        (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
 
-      sync->synch_rotation_pixmap = create_pixmap(ptr->synch_dialog, ROTATION_PIXMAP);
-      gtk_widget_show(sync->synch_rotation_pixmap);
-      gtk_container_add(GTK_CONTAINER(sync->synch_rotation_button),
-                        sync->synch_rotation_pixmap);
+      synch_rotation_image = create_pixmap(ptr->synch_dialog, ROTATION_PIXMAP);
+      gtk_widget_show(synch_rotation_image);
+      gtk_container_add(GTK_CONTAINER(sync->synch_rotation_button), synch_rotation_image);
 
       sync->synch_translation_button = gtk_toggle_button_new();
       gtk_widget_show(sync->synch_translation_button);
       gtk_table_attach(GTK_TABLE(table), sync->synch_translation_button, 7, 8, c + 1,
                        c + 2, (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
 
-      sync->synch_translation_pixmap =
-         create_pixmap(ptr->synch_dialog, TRANSLATION_PIXMAP);
-      gtk_widget_show(sync->synch_translation_pixmap);
+      synch_translation_image = create_pixmap(ptr->synch_dialog, TRANSLATION_PIXMAP);
+      gtk_widget_show(synch_translation_image);
       gtk_container_add(GTK_CONTAINER(sync->synch_translation_button),
-                        sync->synch_translation_pixmap);
+                        synch_translation_image);
 
       sync->synch_tilt_button = gtk_toggle_button_new();
       gtk_widget_show(sync->synch_tilt_button);
       gtk_table_attach(GTK_TABLE(table), sync->synch_tilt_button, 8, 9, c + 1, c + 2,
                        (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
 
-      sync->synch_tilt_pixmap = create_pixmap(ptr->synch_dialog, TILT_PIXMAP);
-      gtk_widget_show(sync->synch_tilt_pixmap);
-      gtk_container_add(GTK_CONTAINER(sync->synch_tilt_button), sync->synch_tilt_pixmap);
+      synch_tilt_image = create_pixmap(ptr->synch_dialog, TILT_PIXMAP);
+      gtk_widget_show(synch_tilt_image);
+      gtk_container_add(GTK_CONTAINER(sync->synch_tilt_button), synch_tilt_image);
 
-      sync->synch_remove_button = gtk_button_new();
-      gtk_widget_show(sync->synch_remove_button);
-      gtk_table_attach(GTK_TABLE(table), sync->synch_remove_button, 9, 10, c + 1, c + 2,
+      synch_remove_button = gtk_button_new();
+      gtk_widget_show(synch_remove_button);
+      gtk_table_attach(GTK_TABLE(table), synch_remove_button, 9, 10, c + 1, c + 2,
                        (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
 
-      sync->synch_remove_pixmap = create_pixmap(ptr->synch_dialog, CLOSE_PIXMAP);
-      gtk_widget_show(sync->synch_remove_pixmap);
-      gtk_container_add(GTK_CONTAINER(sync->synch_remove_button),
-                        sync->synch_remove_pixmap);
+      synch_remove_image = gtk_image_new_from_stock("gtk-delete", GTK_ICON_SIZE_MENU);
+      gtk_widget_show(synch_remove_image);
+      gtk_container_add(GTK_CONTAINER(synch_remove_button), synch_remove_image);
 
       g_signal_connect(G_OBJECT(sync->synch_x), "changed",
                        G_CALLBACK(synch_coord_changed), sync);
@@ -729,31 +659,22 @@ GtkWidget *create_synch_table(Main_info * ptr)
       g_signal_connect(G_OBJECT(sync->synch_z), "changed",
                        G_CALLBACK(synch_coord_changed), sync);
 
-      g_signal_connect(G_OBJECT(sync->synch_remove_button), "clicked",
+      g_signal_connect(G_OBJECT(synch_remove_button), "clicked",
                        G_CALLBACK(synch_remove_button_clicked), sync);
       }
 
    /* now add the "add" button and it's signal */
-   synch_add_button = gtk_button_new();
+   synch_add_button = gtk_button_new_from_stock("gtk-add");
    gtk_widget_show(synch_add_button);
    gtk_table_attach(GTK_TABLE(table), synch_add_button, 0, 1, ptr->n_synchs + 1,
                     ptr->n_synchs + 2, (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0,
                     0);
-
-   synch_add_pixmap = create_pixmap(ptr->synch_dialog, ADD_PIXMAP);
-   gtk_widget_show(synch_add_pixmap);
-   gtk_container_add(GTK_CONTAINER(synch_add_button), synch_add_pixmap);
 
    synch_add_separator = gtk_hseparator_new();
    gtk_widget_show(synch_add_separator);
    gtk_table_attach(GTK_TABLE(table), synch_add_separator, 1, 9, ptr->n_synchs + 1,
                     ptr->n_synchs + 2, (GtkAttachOptions) (GTK_FILL),
                     (GtkAttachOptions) (GTK_FILL), 0, 0);
-
-   gtk_widget_show(table);
-   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
-   gtk_table_set_col_spacings(GTK_TABLE(table), 3);
 
    g_signal_connect(G_OBJECT(synch_add_button), "clicked",
                     G_CALLBACK(synch_add_button_clicked), NULL);
@@ -763,11 +684,9 @@ GtkWidget *create_synch_table(Main_info * ptr)
 
 GtkWidget *create_synch_dialog(Main_info * ptr)
 {
-
    GtkWidget *synch_dialog;
 
    synch_dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-//   gtk_window_set_default_size(synch_dialog, 350, -1);
    gtk_window_set_title(GTK_WINDOW(synch_dialog), _("Synchs"));
 
    /* set the Main_info ptr so we can make pixmaps */
@@ -789,10 +708,8 @@ GtkWidget *create_cmap_fileselection(void)
    GtkWidget *cmap_file_cancel_button;
 
    cmap_fileselection = gtk_file_selection_new(_("Select lookup table"));
-   gtk_container_set_border_width(GTK_CONTAINER(cmap_fileselection), 10);
    gtk_window_set_position(GTK_WINDOW(cmap_fileselection), GTK_WIN_POS_MOUSE);
    gtk_window_set_modal(GTK_WINDOW(cmap_fileselection), TRUE);
-   gtk_window_set_policy(GTK_WINDOW(cmap_fileselection), FALSE, TRUE, TRUE);
 
    cmap_file_ok_button = GTK_FILE_SELECTION(cmap_fileselection)->ok_button;
    gtk_widget_show(cmap_file_ok_button);
@@ -819,7 +736,6 @@ GtkWidget *create_scheme_fileselection(void)
    GtkWidget *scheme_cancel_button;
 
    scheme_fileselection = gtk_file_selection_new(_("select viewnup scheme"));
-   gtk_container_set_border_width(GTK_CONTAINER(scheme_fileselection), 10);
    gtk_window_set_modal(GTK_WINDOW(scheme_fileselection), TRUE);
 
    scheme_ok_button = GTK_FILE_SELECTION(scheme_fileselection)->ok_button;
@@ -843,33 +759,23 @@ GtkWidget *create_scheme_fileselection(void)
 /* about dialog */
 GtkWidget *create_viewnup_about(void)
 {
-//   const gchar *authors[] = {
-//      "Andrew Janke",
-//      "The ghost of Peter Neelin",
-//      NULL
-//   };
-   GtkWidget *viewnup_about;
-
-//   viewnup_about = gnome_about_new("viewnup",
-//                                   VERSION,
-//                                   _("Copyright 2001 Andrew Janke"),
-//                                   authors,
-//                                   _
-//                                   ("http://www.cmr.uq.edu.au/~rotor/software\nComments to: rotor@cmr.uq.edu.au"),
-//                                   "viewnup/viewnup-logo.png");
-//
-//   gtk_object_set_data(GTK_OBJECT(viewnup_about), "viewnup_about", viewnup_about);
-//   gtk_window_set_modal(GTK_WINDOW(viewnup_about), TRUE);
-
-   return viewnup_about;
+   return (gtk_message_dialog_new(NULL,
+                                  GTK_DIALOG_DESTROY_WITH_PARENT,
+                                  GTK_MESSAGE_INFO,
+                                  GTK_BUTTONS_NONE,
+                                  _("%s\n%s\n%s\n"),
+                                  _("Author: Andrew Janke - rotor@cmr.uq.edu.au"),
+                                  _("Web: http://www.cmr.uq.edu.au/~rotor/software"),
+                                  _("Copyright 2002 Andrew Janke")));
    }
 
-
+/* pane info dialog */
 GtkWidget *create_pane_info_dialog(Main_info * ptr)
 {
 
    Pane_dialog *pi = ptr->pane_dialog;
    gint     c;
+   gulong   signal_id;
 
    /* widgets */
    GtkWidget *pane_info_dialog;
@@ -964,8 +870,8 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    /* lists and junk */
    GList   *pi_pane_combo_items = NULL;
    GList   *pi_view_type_combo_items = NULL;
-   GSList  *_2_group = NULL;
-   GSList  *_1_group = NULL;
+   GSList  *roi_group = NULL;
+   GSList  *cmap_group = NULL;
    GList   *pi_cmap_combo_items = NULL;
 
    GtkTooltips *tooltips;
@@ -974,7 +880,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
 
    pane_info_dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    gtk_window_set_title(GTK_WINDOW(pane_info_dialog), _("pane info"));
-   gtk_window_set_policy(GTK_WINDOW(pane_info_dialog), FALSE, TRUE, TRUE);
 
    pi_vbox = gtk_vbox_new(FALSE, 0);
    gtk_widget_show(pi_vbox);
@@ -986,24 +891,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_box_pack_start(GTK_BOX(pi_vbox), pi_label_hbox, FALSE, FALSE, 0);
    gtk_container_set_border_width(GTK_CONTAINER(pi_label_hbox), 3);
 
-   pi->pane_combo = gtk_combo_new();
-   gtk_widget_show(pi->pane_combo);
-   gtk_box_pack_start(GTK_BOX(pi_label_hbox), pi->pane_combo, FALSE, TRUE, 0);
-   gtk_combo_set_value_in_list(GTK_COMBO(pi->pane_combo), TRUE, FALSE);
-   pi_pane_combo_items = g_list_append(pi_pane_combo_items, _("pane 01"));
-   pi_pane_combo_items = g_list_append(pi_pane_combo_items, _("pane 02"));
-   pi_pane_combo_items = g_list_append(pi_pane_combo_items, _("pane 03"));
-   pi_pane_combo_items = g_list_append(pi_pane_combo_items, _("pane 04"));
-   gtk_combo_set_popdown_strings(GTK_COMBO(pi->pane_combo), pi_pane_combo_items);
-   g_list_free(pi_pane_combo_items);
-
-   pi->pane_combo_entry = GTK_COMBO(pi->pane_combo)->entry;
-   gtk_widget_show(pi->pane_combo_entry);
-   gtk_tooltips_set_tip(tooltips, pi->pane_combo_entry, _("the current pane"), NULL);
-   gtk_entry_set_editable(GTK_ENTRY(pi->pane_combo_entry), FALSE);
-   gtk_entry_set_text(GTK_ENTRY(pi->pane_combo_entry), _("pane 01"));
-
-   /* pane add, delete and minimise buttons */
+   /* pane add, clone and close buttons */
    pi_pane_add_button = gtk_button_new();
    gtk_widget_show(pi_pane_add_button);
    gtk_box_pack_end(GTK_BOX(pi_label_hbox), pi_pane_add_button, FALSE, FALSE, 0);
@@ -1033,14 +921,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_pane_close_pixmap);
    gtk_container_add(GTK_CONTAINER(pi_pane_close_button), pi_pane_close_pixmap);
 
-   pi->minimise_checkbutton = gtk_check_button_new_with_label(_("minimise"));
-   gtk_widget_show(pi->minimise_checkbutton);
-   gtk_box_pack_end(GTK_BOX(pi_label_hbox), pi->minimise_checkbutton, FALSE, FALSE, 0);
-   gtk_tooltips_set_tip(tooltips, pi->minimise_checkbutton,
-                        _("minimise the current pane"), NULL);
-   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->minimise_checkbutton), TRUE);
-
-
    /* coordinates */
    pi_coord_frame = gtk_frame_new(_("Coordinates(xyz time/vector)"));
    gtk_widget_show(pi_coord_frame);
@@ -1060,7 +940,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi_voxel_button, _("click to reset coords to COV"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi_voxel_button), GTK_RELIEF_HALF);
 
    pi_world_button = gtk_button_new_with_label(_("world"));
    gtk_widget_show(pi_world_button);
@@ -1068,7 +947,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi_world_button, _("click to reset coords to 0,0,0"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi_world_button), GTK_RELIEF_HALF);
 
    /* co-ordinate spinbuttons */
    /* world */
@@ -1230,7 +1108,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    pi->view_type_combo_entry = GTK_COMBO(pi->view_type_combo)->entry;
    gtk_widget_show(pi->view_type_combo_entry);
    gtk_tooltips_set_tip(tooltips, pi->view_type_combo_entry, _("the type of view"), NULL);
-   gtk_entry_set_editable(GTK_ENTRY(pi->view_type_combo_entry), FALSE);
+   gtk_editable_set_editable(GTK_EDITABLE(pi->view_type_combo_entry), FALSE);
    gtk_entry_set_text(GTK_ENTRY(pi->view_type_combo_entry), _("transverse"));
 
    /* view add and delete buttons */
@@ -1311,7 +1189,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->scale_link_button, _("link scales between views"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->scale_link_button), GTK_RELIEF_NONE);
 
    pi_scale_link_pixmap = create_pixmap(pane_info_dialog, CHAIN_V_PIXMAP);
    gtk_widget_show(pi_scale_link_pixmap);
@@ -1323,7 +1200,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->rot_link_button, _("link rotations between views"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->rot_link_button), GTK_RELIEF_NONE);
 
    pi_rot_link_pixmap = create_pixmap(pane_info_dialog, CHAIN_V_PIXMAP);
    gtk_widget_show(pi_rot_link_pixmap);
@@ -1335,7 +1211,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->trans_link_button,
                         _("link translations between views"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->trans_link_button), GTK_RELIEF_NONE);
 
    pi_trans_link_pixmap = create_pixmap(pane_info_dialog, CHAIN_V_PIXMAP);
    gtk_widget_show(pi_trans_link_pixmap);
@@ -1347,7 +1222,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (0), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->tilt_link_button, _("link tilts between views"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->tilt_link_button), GTK_RELIEF_NONE);
 
    pi_tilt_link_pixmap = create_pixmap(pane_info_dialog, CHAIN_V_PIXMAP);
    gtk_widget_show(pi_tilt_link_pixmap);
@@ -1359,7 +1233,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi_scale_button, 1, 2, 0, 1,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi_scale_button, _("click to reset scale"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi_scale_button), GTK_RELIEF_NONE);
 
    pi_scale_pixmap = create_pixmap(pane_info_dialog, SCALE_PIXMAP);
    gtk_widget_show(pi_scale_pixmap);
@@ -1370,7 +1243,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi->scale_lock_button, 2, 3, 0, 1,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->scale_lock_button, _("lock the scale"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->scale_lock_button), GTK_RELIEF_NONE);
 
    pi_scale_lock_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_scale_lock_pixmap);
@@ -1391,7 +1263,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi_rot_button, 1, 2, 1, 2,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi_rot_button, _("click to reset rotations"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi_rot_button), GTK_RELIEF_NONE);
 
    pi_rot_pixmap = create_pixmap(pane_info_dialog, ROTATION_PIXMAP);
    gtk_widget_show(pi_rot_pixmap);
@@ -1451,7 +1322,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->rot_lock_phi_button, _("lock the phi rotation"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->rot_lock_phi_button), GTK_RELIEF_NONE);
 
    pi_rot_lock_phi_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_rot_lock_phi_pixmap);
@@ -1465,7 +1335,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi_trans_button, _("click to reset translations"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi_trans_button), GTK_RELIEF_NONE);
 
    pi_trans_pixmap = create_pixmap(pane_info_dialog, TRANSLATION_PIXMAP);
    gtk_widget_show(pi_trans_pixmap);
@@ -1505,7 +1374,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi_tilt_button, 1, 2, 3, 4,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi_tilt_button, _("click to reset tilts"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi_tilt_button), GTK_RELIEF_NONE);
 
    pi_tilt_pixmap = create_pixmap(pane_info_dialog, TILT_PIXMAP);
    gtk_widget_show(pi_tilt_pixmap);
@@ -1547,7 +1415,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi->rot_lock_x_button, 2, 3, 1, 2,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->rot_lock_x_button, _("lock the x rotation"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->rot_lock_x_button), GTK_RELIEF_NONE);
 
    pi_rot_lock_x_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_rot_lock_x_pixmap);
@@ -1559,7 +1426,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->trans_lock_x_button, _("lock the x translation"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->trans_lock_x_button), GTK_RELIEF_NONE);
 
    pi_trans_lock_x_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_trans_lock_x_pixmap);
@@ -1570,7 +1436,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi->tilt_lock_x_button, 2, 3, 3, 4,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->tilt_lock_x_button, _("lock the x tilt"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->tilt_lock_x_button), GTK_RELIEF_NONE);
 
    pi_tilt_lock_x_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_tilt_lock_x_pixmap);
@@ -1581,7 +1446,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi->rot_lock_y_button, 4, 5, 1, 2,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->rot_lock_y_button, _("lock the y rotation"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->rot_lock_y_button), GTK_RELIEF_NONE);
 
    pi_rot_lock_y_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_rot_lock_y_pixmap);
@@ -1593,7 +1457,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->trans_lock_y_button, _("lock the y translation"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->trans_lock_y_button), GTK_RELIEF_NONE);
 
    pi_trans_lock_y_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_trans_lock_y_pixmap);
@@ -1604,7 +1467,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi->tilt_lock_y_button, 4, 5, 3, 4,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->tilt_lock_y_button, _("lock the y tilt"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->tilt_lock_y_button), GTK_RELIEF_NONE);
 
    pi_tilt_lock_y_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_tilt_lock_y_pixmap);
@@ -1615,7 +1477,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi->rot_lock_z_button, 6, 7, 1, 2,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->rot_lock_z_button, _("lock the z rotation"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->rot_lock_z_button), GTK_RELIEF_NONE);
 
    pi_rot_lock_z_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_rot_lock_z_pixmap);
@@ -1627,7 +1488,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->trans_lock_z_button, _("lock the z translation"),
                         NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->trans_lock_z_button), GTK_RELIEF_NONE);
 
    pi_trans_lock_z_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_trans_lock_z_pixmap);
@@ -1638,7 +1498,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_table_attach(GTK_TABLE(pi_view_det_table), pi->tilt_lock_z_button, 6, 7, 3, 4,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->tilt_lock_z_button, _("lock the z tilt"), NULL);
-   gtk_button_set_relief(GTK_BUTTON(pi->tilt_lock_z_button), GTK_RELIEF_NONE);
 
    pi_tilt_lock_z_pixmap = create_pixmap(pane_info_dialog, LOCKED_PIXMAP);
    gtk_widget_show(pi_tilt_lock_z_pixmap);
@@ -1659,8 +1518,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_roi_type_hbox);
    gtk_box_pack_start(GTK_BOX(pi_roi_vbox), pi_roi_type_hbox, FALSE, TRUE, 0);
 
-   pi->roi_none_radiobutton = gtk_radio_button_new_with_label(_2_group, _("none"));
-   _2_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pi->roi_none_radiobutton));
+   pi->roi_none_radiobutton = gtk_radio_button_new_with_label(NULL, _("none"));
    gtk_widget_show(pi->roi_none_radiobutton);
    gtk_box_pack_start(GTK_BOX(pi_roi_type_hbox), pi->roi_none_radiobutton, FALSE, TRUE,
                       0);
@@ -1668,8 +1526,9 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                         NULL);
    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->roi_none_radiobutton), TRUE);
 
-   pi->roi_cube_radiobutton = gtk_radio_button_new_with_label(_2_group, _("cube"));
-   _2_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pi->roi_cube_radiobutton));
+   roi_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(pi->roi_none_radiobutton));
+
+   pi->roi_cube_radiobutton = gtk_radio_button_new_with_label(roi_group, _("cube"));
    gtk_widget_show(pi->roi_cube_radiobutton);
    gtk_box_pack_start(GTK_BOX(pi_roi_type_hbox), pi->roi_cube_radiobutton, FALSE, TRUE,
                       0);
@@ -1677,8 +1536,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                         NULL);
    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->roi_cube_radiobutton), TRUE);
 
-   pi->roi_sphere_radiobutton = gtk_radio_button_new_with_label(_2_group, _("sphere"));
-   _2_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pi->roi_sphere_radiobutton));
+   pi->roi_sphere_radiobutton = gtk_radio_button_new_with_label(roi_group, _("sphere"));
    gtk_widget_show(pi->roi_sphere_radiobutton);
    gtk_box_pack_start(GTK_BOX(pi_roi_type_hbox), pi->roi_sphere_radiobutton, FALSE, TRUE,
                       0);
@@ -1795,8 +1653,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_cmap_type_hbox);
    gtk_box_pack_start(GTK_BOX(pi_cmap_vbox), pi_cmap_type_hbox, FALSE, TRUE, 0);
 
-   pi->cmap_grey_radiobutton = gtk_radio_button_new_with_label(_1_group, _("grey"));
-   _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pi->cmap_grey_radiobutton));
+   pi->cmap_grey_radiobutton = gtk_radio_button_new_with_label(NULL, _("grey"));
    gtk_widget_show(pi->cmap_grey_radiobutton);
    gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_grey_radiobutton, FALSE, FALSE,
                       0);
@@ -1805,8 +1662,9 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->cmap_grey_radiobutton), TRUE);
    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pi->cmap_grey_radiobutton), FALSE);
 
-   pi->cmap_hot_radiobutton = gtk_radio_button_new_with_label(_1_group, _("hot"));
-   _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pi->cmap_hot_radiobutton));
+   cmap_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(pi->cmap_grey_radiobutton));
+
+   pi->cmap_hot_radiobutton = gtk_radio_button_new_with_label(cmap_group, _("hot"));
    gtk_widget_show(pi->cmap_hot_radiobutton);
    gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_hot_radiobutton, FALSE, FALSE,
                       0);
@@ -1814,8 +1672,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                         NULL);
    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pi->cmap_hot_radiobutton), FALSE);
 
-   pi->cmap_spect_radiobutton = gtk_radio_button_new_with_label(_1_group, _("spect"));
-   _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pi->cmap_spect_radiobutton));
+   pi->cmap_spect_radiobutton = gtk_radio_button_new_with_label(cmap_group, _("spect"));
    gtk_widget_show(pi->cmap_spect_radiobutton);
    gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_spect_radiobutton, FALSE,
                       FALSE, 0);
@@ -1823,8 +1680,8 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                         NULL);
    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pi->cmap_spect_radiobutton), FALSE);
 
-   pi->cmap_bluered_radiobutton = gtk_radio_button_new_with_label(_1_group, _("bluered"));
-   _1_group = gtk_radio_button_group(GTK_RADIO_BUTTON(pi->cmap_bluered_radiobutton));
+   pi->cmap_bluered_radiobutton =
+      gtk_radio_button_new_with_label(cmap_group, _("bluered"));
    gtk_widget_show(pi->cmap_bluered_radiobutton);
    gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_bluered_radiobutton, FALSE,
                       FALSE, 0);
@@ -1854,7 +1711,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
 
    pi->cmap_combo_entry = GTK_COMBO(pi->cmap_combo)->entry;
    gtk_widget_show(pi->cmap_combo_entry);
-   gtk_entry_set_editable(GTK_ENTRY(pi->cmap_combo_entry), FALSE);
+   gtk_editable_set_editable(GTK_EDITABLE(pi->cmap_combo_entry), FALSE);
 
    /* vector frame */
    pi->vector_frame = gtk_frame_new(_("Vector"));
@@ -2045,7 +1902,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                        0);
       gtk_tooltips_set_tip(tooltips, pi->merge_link_button[0],
                            _("link scales between views"), NULL);
-      gtk_button_set_relief(GTK_BUTTON(pi->merge_link_button[c]), GTK_RELIEF_NONE);
 
       pi->merge_link_pixmap[c] = create_pixmap(pane_info_dialog, CHAIN_V_PIXMAP);
       gtk_widget_show(pi->merge_link_pixmap[c]);
@@ -2063,24 +1919,38 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
       }
 
    /* signals to callbacks */
-   g_signal_connect(G_OBJECT(pi->pane_combo_entry), "changed",
-                    G_CALLBACK(pi_pane_combo_entry_changed), ptr);
    g_signal_connect(G_OBJECT(pi_pane_add_button), "clicked",
                     G_CALLBACK(pi_pane_add_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_pane_clone_button), "clicked",
                     G_CALLBACK(pi_pane_clone_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_pane_close_button), "clicked",
                     G_CALLBACK(pi_pane_close_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->minimise_checkbutton), "toggled",
-                    G_CALLBACK(pi_minimise_checkbutton_toggled), ptr);
    g_signal_connect(G_OBJECT(pi_voxel_button), "clicked",
                     G_CALLBACK(pi_voxel_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_world_button), "clicked",
                     G_CALLBACK(pi_world_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->crosshair_checkbutton), "toggled",
-                    G_CALLBACK(pi_crosshair_checkbutton_toggled), ptr);
-   g_signal_connect(G_OBJECT(pi->perspective_checkbutton), "toggled",
-                    G_CALLBACK(pi_perspective_checkbutton_toggled), ptr);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->crosshair_checkbutton), "toggled",
+                                G_CALLBACK(pi_crosshair_checkbutton_toggled), ptr);
+
+   g_array_append_vals(ptr->pane_dialog_signal_ids, &signal_id, 1);
+//   Add each signal id to an array as we add them then add a nice for loop to callbacks.c 
+//   where we block and unblock signals...  Just nicer.
+
+   g_print("Added signal with Id %ld\n", signal_id);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->perspective_checkbutton), "toggled",
+                                G_CALLBACK(pi_perspective_checkbutton_toggled), ptr);
+
+   g_array_append_vals(ptr->pane_dialog_signal_ids, &signal_id, 1);
+//   Add each signal id to an array as we add them then add a nice for loop to callbacks.c 
+//   where we block and unblock signals...  Just nicer.
+
+   g_print("Added signal with Id %ld\n", signal_id);
+
+//   g_print("Signal id's: %d %d\n", &g_array_index(
+
+
    g_signal_connect(G_OBJECT(pi->linear_interp_checkbutton), "toggled",
                     G_CALLBACK(pi_linear_interp_checkbutton_toggled), ptr);
    g_signal_connect(G_OBJECT(pi->vector_checkbutton), "toggled",
@@ -2229,7 +2099,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    g_signal_connect(G_OBJECT(pane_info_dialog), "delete_event",
                     G_CALLBACK(pane_info_dialog_delete_event), NULL);
 
-   gtk_object_set_data(GTK_OBJECT(pane_info_dialog), "tooltips", tooltips);
+   g_object_set_data(G_OBJECT(pane_info_dialog), "tooltips", tooltips);
 
    return pane_info_dialog;
    }

@@ -79,7 +79,7 @@ struct poptOption options[] = {
 Main_info *init_main_info(int init_synch_idx, int transverse, int sagittal, int coronal)
 {
    int      c;
-   Main_info *ptr = &main_info;
+   Main_info *ptr = get_main_ptr();
 
    /* set up panes structure */
    ptr->panes = g_ptr_array_new();
@@ -109,12 +109,9 @@ Main_info *init_main_info(int init_synch_idx, int transverse, int sagittal, int 
    ptr->lookup_tables = (Lookup_Table **) g_malloc(sizeof(Lookup_Table *) * MAX_TABLES);
    ptr->n_tables = 0;
 
+   /* pane info dialog */
    ptr->pane_dialog = (Pane_dialog *) g_malloc(sizeof(Pane_dialog));
-
-   /* init the shared glarea widget */
-//   ptr->glarea_share = create_glarea(NULL, NULL);
-//   gtk_widget_ref(ptr->glarea_share);
-   ptr->glconfig = configure_gtkgl();
+   ptr->pane_dialog_signal_ids = g_array_new(FALSE, FALSE, sizeof(gulong));
 
    /* initialise highlight and normal styles */
 // very likely not needed now
@@ -311,7 +308,6 @@ Pane_info init_pane_info(Synch_info * synch)
    pane->position = 0;
    pane->draw_fast = draw_fast;
    pane->draw = FALSE;
-   pane->minimise = FALSE;
    pane->linear_interp = TRUE;
    pane->vector = vector;
    pane->perspective = perspective;
@@ -410,7 +406,7 @@ void print_pane_info(Pane_info pane)
    g_print(_("  Pane rrange %g-%g\n"), pane->pane_min_value, pane->pane_max_value);
    g_print(_("  merge/synch %d/%d\n"), pane->merge, pane->synch->idx);
    g_print(_("  draw/fast   %d/%d\n"), pane->draw, pane->draw_fast);
-   g_print(_("  min/interp  %d/%d\n"), pane->minimise, pane->linear_interp);
+   g_print(_("  interp      %d\n"),    pane->linear_interp);
    g_print(_("  vect/perp   %d/%d\n"), pane->vector, pane->perspective);
    g_print(_("  bbox/sbox   %d/%d\n"), pane->bounding_box, pane->slice_box);
    g_print(_("  cross/size  %d/%g\n"), pane->crosshair, pane->crosshair_size);
@@ -570,7 +566,7 @@ int main(int argc, char *argv[])
 {
    Main_info *ptr;
    Pane_info pane;
-   char    *infiles[128];
+   char   **infiles;
    int      n_infiles;
    int      add_merge_pane = TRUE;
    int      c;
@@ -592,21 +588,14 @@ int main(int argc, char *argv[])
    verbose = TRUE;
 //   optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
 
+   /* assume remaining args input files */
+   n_infiles = argc - 1;
+   if(n_infiles > 128){
+      g_error(_("Too many input files (max 128)\n"));
+      }
+   infiles = &argv[1];
 
-
-   /* Argument parsing - assume remaining args are minc files */
-   n_infiles = 0;
-//   while (poptPeekArg(pctx) != NULL){
-//      if(n_infiles > 128){
-//         g_error(_("Too many input files (max 128)\n"));
-//         }
-//
-//      infiles[n_infiles] = poptGetArg(pctx);
-//      n_infiles++;
-//      }
-//   poptFreeContext(pctx);
-
-   /* set up a few initialisers */
+   /* set up default initial views */
    if(!transverse && !sagittal && !coronal){
       transverse = TRUE;
       sagittal = TRUE;
@@ -637,11 +626,14 @@ int main(int argc, char *argv[])
    /* init main info structure */
    ptr = init_main_info(init_synch_idx, transverse, sagittal, coronal);
 
-   /* load the main window and dialogs */
+   /* create the main window and dialogs */
    ptr->main_widget = create_viewnup_main(ptr);
    ptr->synch_dialog = create_synch_dialog(ptr);
    ptr->pane_info_dialog = create_pane_info_dialog(ptr);
    gtk_widget_show(ptr->main_widget);
+
+   /* initialize and configure Main gtkgl widget and context */
+   configure_gtkgl(ptr);
 
    /* setup the initial panes */
    if(verbose){
@@ -666,7 +658,7 @@ int main(int argc, char *argv[])
       }
 
    /* make the first pane active */
-   make_pane_active(g_ptr_array_index(ptr->panes, 0));
+//   make_pane_active(g_ptr_array_index(ptr->panes, 0));
 
    /* open the infiles */
    for(c = 0; c < n_infiles; c++){
@@ -675,8 +667,8 @@ int main(int argc, char *argv[])
          }
 
       pane = g_ptr_array_index(ptr->panes, c);
-//      gtk_entry_set_text(GTK_ENTRY(pane->file_open_combo), infiles[c]);
-//      gtk_widget_activate(GTK_WIDGET(pane->file_open_combo));
+      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(pane->file_open_combo)->entry), infiles[c]);
+      gtk_widget_activate(GTK_WIDGET(GTK_COMBO(pane->file_open_combo)->entry));
       }
 
    g_print(_("Entering gtk_main() loop\n"));

@@ -25,20 +25,16 @@ void     update_merge_combos(Main_info * ptr);
 /* functions to do stuff to the interface - externally callable */
 void init_highlight_styles(Main_info * ptr)
 {
-   GdkColor black = { 0, 0, 0, 0 };
    GdkColor white = { 0, 65535, 65535, 65535 };
-   GdkColor green = { 0, 0, 65535, 0 };
    GdkColor drk_blue = { 0, 0, 2560, 20480 };
+   GdkColor green = { 0, 0, 65535, 0 };
 
-   ptr->pane_normal_style = gtk_style_new();
-   ptr->view_normal_style = gtk_style_new();
    ptr->pane_highlight_style = gtk_style_new();
    ptr->view_highlight_style = gtk_style_new();
 
    ptr->pane_highlight_style->fg[GTK_STATE_NORMAL] = white;
    ptr->pane_highlight_style->bg[GTK_STATE_NORMAL] = drk_blue;
 
-   ptr->view_normal_style->bg[GTK_STATE_NORMAL] = black;
    ptr->view_highlight_style->bg[GTK_STATE_NORMAL] = green;
    }
 
@@ -64,7 +60,7 @@ void push_statusbar(Main_info * ptr, char *buf, int highlight)
       gtk_widget_set_style(GTK_WIDGET(ptr->statusbar), ptr->pane_highlight_style);
       }
    else{
-      gtk_widget_set_style(GTK_WIDGET(ptr->statusbar), ptr->pane_normal_style);
+      gtk_widget_set_style(GTK_WIDGET(ptr->statusbar), NULL);
       }
    }
 
@@ -77,14 +73,12 @@ void make_pane_active(Pane_info pane)
    if(pane != ptr->c_pane){
 
       /* update pane styles, new then fix up old */
-      gtk_widget_set_style(GTK_WIDGET(pane->pane_label), ptr->pane_highlight_style);
-      gtk_widget_set_style(GTK_WIDGET(pane->eventbox_label), ptr->pane_highlight_style);
-      if(ptr->c_pane != NULL){
-         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->pane_label),
-                              ptr->pane_normal_style);
-         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->eventbox_label),
-                              ptr->pane_normal_style);
-         }
+//      gtk_widget_set_style(GTK_WIDGET(pane->pane_label), ptr->pane_highlight_style);
+//      gtk_widget_set_style(GTK_WIDGET(pane->eventbox_label), ptr->pane_highlight_style);
+//      if(ptr->c_pane != NULL){
+//         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->pane_label), NULL);
+//         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->eventbox_label), NULL);
+//         }
 
 
       /* change coordinate adjustments and values */
@@ -117,7 +111,9 @@ void make_pane_active(Pane_info pane)
 
 
       /* Views frame */
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->linear_interp_checkbutton), ptr);
+      g_signal_handlers_block_by_func(G_OBJECT(pi->linear_interp_checkbutton),
+                                      G_CALLBACK(pi_linear_interp_checkbutton_toggled),
+                                      ptr);
       gtk_signal_handler_block_by_data(GTK_OBJECT(pi->vector_checkbutton), ptr);
       gtk_signal_handler_block_by_data(GTK_OBJECT(pi->perspective_checkbutton), ptr);
       gtk_signal_handler_block_by_data(GTK_OBJECT(pi->bbox_checkbutton), ptr);
@@ -266,8 +262,7 @@ void make_view_active(Pane_info pane, View_info view)
 
       /* then restore the previous c_view */
       if(pane->c_view != NULL){
-         gtk_widget_set_style(GTK_WIDGET(pane->c_view->view_frame),
-                              ptr->view_normal_style);
+         gtk_widget_set_style(GTK_WIDGET(pane->c_view->view_frame), NULL);
          }
       }
 
@@ -414,12 +409,10 @@ void update_pi_tilts(Main_info * ptr, double x, double y, double z)
 /* set the filename and pane title */
 void update_pane_and_filename(Pane_info pane)
 {
-   if(pane->file_basename->str != NULL){
-      gtk_label_set_text(GTK_LABEL(pane->pane_label), pane->file_basename->str);
-      }
    if(!pane->merge){
       if(pane->file_name->str != NULL){
-         gtk_entry_set_text(GTK_ENTRY(pane->file_open_combo), pane->file_name->str);
+         gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(pane->file_open_combo)->entry),
+                            pane->file_name->str);
          }
       }
    }
@@ -661,10 +654,9 @@ void update_synch_button(Main_info * ptr, Pane_info pane)
          update_voxel_from_world(pane);
          }
       }
-
    update_coord_values(pane);
 
-   gtk_object_set(GTK_OBJECT(pane->sync_button), "label", synch_text, NULL);
+   gtk_button_set_label(GTK_BUTTON(pane->sync_button), synch_text);
    }
 
 void update_merge_combos(Main_info * ptr)
@@ -732,8 +724,8 @@ Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge)
       pane->range_min_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
       pane->range_max_adj = gtk_adjustment_new(1, 0, 1, 1, 10, 1);
 
-      gtk_object_ref(pane->range_min_adj);
-      gtk_object_ref(pane->range_max_adj);
+      g_object_ref(pane->range_min_adj);
+      g_object_ref(pane->range_max_adj);
       }
 
    /* coordinate adjusters */
@@ -747,15 +739,15 @@ Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge)
    pane->coord_wz_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
    pane->coord_wt_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
 
-   gtk_object_ref(pane->coord_vx_adj);
-   gtk_object_ref(pane->coord_vy_adj);
-   gtk_object_ref(pane->coord_vz_adj);
-   gtk_object_ref(pane->coord_vt_adj);
+   g_object_ref(pane->coord_vx_adj);
+   g_object_ref(pane->coord_vy_adj);
+   g_object_ref(pane->coord_vz_adj);
+   g_object_ref(pane->coord_vt_adj);
 
-   gtk_object_ref(pane->coord_wx_adj);
-   gtk_object_ref(pane->coord_wy_adj);
-   gtk_object_ref(pane->coord_wz_adj);
-   gtk_object_ref(pane->coord_wt_adj);
+   g_object_ref(pane->coord_wx_adj);
+   g_object_ref(pane->coord_wy_adj);
+   g_object_ref(pane->coord_wz_adj);
+   g_object_ref(pane->coord_wt_adj);
 
    /* create the widgets now that we have adjustments */
    create_pane_widgets(ptr, pane);
@@ -962,19 +954,19 @@ void vox_value_button_clicked(GtkButton * button, gpointer user_data)
    default:
    case VALUE_NONE:
       pane->value_type = VALUE_REAL;
-      gtk_object_set(GTK_OBJECT(button), "label", "real:", NULL);
+      gtk_button_set_label(GTK_BUTTON(button), "real:");
       break;
    case VALUE_REAL:
       pane->value_type = VALUE_VOXEL;
-      gtk_object_set(GTK_OBJECT(button), "label", "voxel:", NULL);
+      gtk_button_set_label(GTK_BUTTON(button), "voxel:");
       break;
    case VALUE_VOXEL:
       pane->value_type = VALUE_RGBA;
-      gtk_object_set(GTK_OBJECT(button), "label", "rgba:", NULL);
+      gtk_button_set_label(GTK_BUTTON(button), "rgba:");
       break;
    case VALUE_RGBA:
       pane->value_type = VALUE_NONE;
-      gtk_object_set(GTK_OBJECT(button), "label", "none", NULL);
+      gtk_button_set_label(GTK_BUTTON(button), "none");
       break;
       }
 
@@ -1001,12 +993,12 @@ void coord_button_clicked(GtkButton * button, gpointer user_data)
    Pane_info pane = (Pane_info) user_data;
 
    if(pane->use_vox_coords){
-      gtk_object_set(GTK_OBJECT(button), "label", "W:", NULL);
+      gtk_button_set_label(GTK_BUTTON(button), "W:");
 
       pane->use_vox_coords = FALSE;
       }
    else{
-      gtk_object_set(GTK_OBJECT(button), "label", "V:", NULL);
+      gtk_button_set_label(GTK_BUTTON(button), "V:");
       pane->use_vox_coords = TRUE;
       }
 
@@ -1159,16 +1151,16 @@ void wt_coord_changed(GtkEditable *editable, gpointer user_data)
 
 /* open file stuff          */
 /* pane open file callbacks */
-void file_open_combo_activate(GtkEditable *editable, gpointer user_data)
+void file_open_entry_activate(GtkEntry *entry, gpointer user_data)
 {
    Main_info *ptr = get_main_ptr();
    Pane_info pane = (Pane_info) user_data;
    View_info view;
-   const gchar *text;
+   gchar *text;
    gchar    buf[128];
    int      c;
 
-   text = gtk_entry_get_text(GTK_ENTRY(editable));
+   text = g_strdup(gtk_entry_get_text(entry));
 
    if(text == NULL){
       g_snprintf(buf, 128, _("open file passed NULL pointer!"));
@@ -1176,7 +1168,7 @@ void file_open_combo_activate(GtkEditable *editable, gpointer user_data)
       return;
       }
 
-   if(g_file_test(text, G_FILE_TEST_EXISTS)){
+   if(!g_file_test(text, G_FILE_TEST_EXISTS)){
       g_snprintf(buf, 128, _("'%s' does not exist"), text);
       push_statusbar(ptr, buf, 1);
       return;
@@ -1242,7 +1234,8 @@ void file_open_combo_activate(GtkEditable *editable, gpointer user_data)
             view = g_ptr_array_index(pane->views, c);
             view->reload_image = TRUE;
             }
-         gtk_progress_set_percentage(GTK_PROGRESS(ptr->progressbar), pane->perc_input);
+         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ptr->progressbar),
+                                       pane->perc_input);
 
          if(!pane->draw_fast){
             redraw_pane_views(pane);
@@ -1251,7 +1244,7 @@ void file_open_combo_activate(GtkEditable *editable, gpointer user_data)
       }
 
    /* finish up */
-   gtk_progress_set_percentage(GTK_PROGRESS(ptr->progressbar), 1.0);
+   gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(ptr->progressbar), 1.0);
    update_voxel_value(pane);
    redraw_pane_views(pane);
 
@@ -1260,6 +1253,8 @@ void file_open_combo_activate(GtkEditable *editable, gpointer user_data)
 
    /* update the merge combos */
    update_merge_combos(ptr);
+   
+   free(text);
    }
 
 
@@ -1536,18 +1531,6 @@ gboolean pane_info_dialog_delete_event(GtkWidget *widget, GdkEvent * event,
 {
    gtk_widget_hide(GTK_WIDGET(widget));
    return TRUE;
-   }
-
-void pi_pane_combo_entry_changed(GtkEditable *editable, gpointer user_data)
-{
-//   Main_info *ptr = (Main_info *) user_data;
-
-   }
-
-void pi_minimise_checkbutton_toggled(GtkToggleButton * togglebutton, gpointer user_data)
-{
-//   Main_info *ptr = (Main_info *) user_data;
-
    }
 
 void pi_pane_add_button_clicked(GtkButton * button, gpointer user_data)

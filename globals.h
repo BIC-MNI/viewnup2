@@ -78,10 +78,6 @@ typedef struct {
    GtkWidget *synch_rotation_button;
    GtkWidget *synch_translation_button;
    GtkWidget *synch_tilt_button;
-   GtkWidget *synch_scale_pixmap;
-   GtkWidget *synch_rotation_pixmap;
-   GtkWidget *synch_translation_pixmap;
-   GtkWidget *synch_tilt_pixmap;
 
    GtkObject *synch_x_adj;
    GtkObject *synch_y_adj;
@@ -99,9 +95,6 @@ typedef struct {
    GtkObject *synch_tilt_x_adj;
    GtkObject *synch_tilt_y_adj;
    GtkObject *synch_tilt_z_adj;
-
-   GtkWidget *synch_remove_button;
-   GtkWidget *synch_remove_pixmap;
 } Synch_info;
 
 /* view_info structure */
@@ -180,7 +173,7 @@ struct view_info_struct {
 
    /* Widgets */
    GtkWidget *view_frame;
-   GtkWidget *glarea;
+   GtkWidget *gtkgl_widget;
 };
 
 /* pane_info structure */
@@ -199,7 +192,6 @@ struct pane_info_struct {
    int      position;
    int      draw;
    int      draw_fast;
-   int      minimise;
    int      linear_interp;
    int      vector;
    int      perspective;
@@ -276,22 +268,22 @@ struct pane_info_struct {
    GtkWidget *vsep;
    GtkWidget *vbox_pane;
 
-   GtkWidget *eventbox_label;
-   GtkWidget *hbox_label;
+   GtkWidget *hbox_header;
+   
+   GtkWidget *file_open;
+   GtkWidget *file_open_combo;
+   GtkWidget *file_open_button;
+   GtkWidget *file_open_pixmap;
+   
    GtkWidget *left_button;
    GtkWidget *arrow_left;
    GtkWidget *right_button;
    GtkWidget *arrow_right;
    GtkWidget *sync_button;
-   GtkWidget *pane_label;
-   GtkWidget *minimise_button;
-   GtkWidget *minimise_pixmap;
    GtkWidget *close_button;
    GtkWidget *close_pixmap;
 
-   GtkWidget *hsep_0;
    GtkWidget *vbox_img;
-   GtkWidget *hsep_1;
    GtkWidget *hbox_values;
    GtkWidget *hbox_values_vox;
    GtkWidget *vox_value_button;
@@ -299,7 +291,6 @@ struct pane_info_struct {
    GtkWidget *hbox_values_roi;
    GtkWidget *roi_value_button;
    GtkWidget *roi_value;
-   GtkWidget *hsep_2;
    GtkWidget *hbox_coord;
    GtkWidget *coord_button;
    GtkWidget *coord_vx;
@@ -310,8 +301,6 @@ struct pane_info_struct {
    GtkWidget *coord_wy;
    GtkWidget *coord_wz;
    GtkWidget *coord_wt;
-
-   GtkWidget *hsep_3;
 
    GtkWidget *range_table;
    GtkWidget *range_min_val;
@@ -326,12 +315,6 @@ struct pane_info_struct {
    GtkWidget *cmap_bluered_radio;
    GtkWidget *cmap_combo;
    GtkWidget *cmap_combo_entry;
-
-   GtkWidget *hsep_4;
-
-   GtkWidget *hbox_file_open;
-   GtkWidget *file_open;
-   GtkWidget *file_open_combo;
 
    /* adjustments */
    GtkObject *coord_vx_adj;
@@ -349,10 +332,6 @@ struct pane_info_struct {
 };
 
 typedef struct {
-   GtkWidget *pane_combo;
-   GtkWidget *pane_combo_entry;
-   GtkWidget *minimise_checkbutton;
-
    GtkWidget *wx_spinbutton;
    GtkWidget *wy_spinbutton;
    GtkWidget *wz_spinbutton;
@@ -502,9 +481,11 @@ typedef struct {
 
    /* pane info dialog */
    Pane_dialog *pane_dialog;
+   GArray *pane_dialog_signal_ids;
 
    /* widgets */
    GtkWidget *main_widget;
+   GtkWidget *main_vbox;
    GtkWidget *synch_dialog;
    GtkWidget *synch_table;
    GtkWidget *pane_info_dialog;
@@ -514,9 +495,10 @@ typedef struct {
    GtkWidget *progressbar;
 
    /* gtkgl */
-//   GtkWidget *glarea_share;
    GdkGLConfig *glconfig;
-
+   GtkWidget *gtkgl_share;
+   GdkGLContext *glcontext;
+   
    /* tooltips */
    GtkTooltips *tooltips;
 

@@ -6,9 +6,9 @@
 #include "globals.h"
 
 /* function prototypes */
-GdkGLConfig *configure_gtkgl(void);
+GdkGLConfig *configure_gtkgl(Main_info *ptr);
 
-GtkWidget* create_glarea(Pane_info pane, View_info view);
+GtkWidget* create_gtkgl_widget(Main_info *ptr, Pane_info pane, View_info view);
 
 void redraw_pane_views (Pane_info pane);
 void redraw_pane_view  (View_info view);

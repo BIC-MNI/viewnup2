@@ -1,4 +1,4 @@
-/* gtkglarea_calls.c */
+/* gtk_gl.c */
 
 #define CHECK_OPENGL_ERROR(){\
    GLenum  error; \
@@ -6,12 +6,10 @@
       printf("[%s:%d] failed with error [%d] %s\n", \
          __FILE__, __LINE__, error, gluErrorString(error)); \
       } \
-      }
+                  }
 
 #include <GL/gl.h>
 #include <GL/glu.h>
-// #include <gtkgl/gdkgl.h>
-// #include <gtkgl/gtkglarea.h>
 #include <math.h>
 
 #include "gtk_gl.h"
@@ -24,28 +22,32 @@
 
 extern int verbose;
 
-/* gtkglarea callbacks structure */
+/* gtkgl callbacks structure */
 typedef struct {
+   Main_info *ptr;
    Pane_info pane;
    View_info view;
-} Gtkglarea_info;
+} GtkGL_info;
 
 /* internal function prototypes */
-void     update_glarea_coords(Pane_info pane, View_info view, GLdouble x, GLdouble y);
-void     translate_glarea(Pane_info pane, View_info view,
-                          double beginx, double beginy, double x, double y);
+void     update_gtkgl_coords(Pane_info pane, View_info view, GLdouble x, GLdouble y);
+void     translate_gtkgl(Pane_info pane, View_info view,
+                         double beginx, double beginy, double x, double y);
 void     load_view_texmap(Pane_info pane, View_info view);
 int      draw_texture_slice(Pane_info pane, View_info v);
 void     draw_vector_slice(Pane_info pane, View_info view);
 
-gint     glarea_button_press(GtkWidget *, GdkEventButton *, gpointer func_data);
-gint     glarea_motion_notify(GtkWidget *, GdkEventMotion *, gpointer func_data);
-gint     glarea_button_release(GtkWidget *, GdkEventButton *, gpointer func_data);
+gint     gtkgl_button_press(GtkWidget *widget, GdkEventButton * event,
+                            gpointer func_data);
+gint     gtkgl_motion_notify(GtkWidget *widget, GdkEventMotion * event,
+                             gpointer func_data);
+gint     gtkgl_button_release(GtkWidget *widget, GdkEventButton * event,
+                              gpointer func_data);
 
-gint     glarea_draw(GtkWidget *, GdkEventExpose *, gpointer func_data);
-gint     glarea_reshape(GtkWidget *, GdkEventConfigure *, gpointer func_data);
-gint     glarea_init(GtkWidget *, gpointer func_data);
-gint     glarea_destroy(GtkWidget *, gpointer func_data);
+gint     gtkgl_draw(GtkWidget *widget, GdkEventExpose * event, gpointer func_data);
+gint     gtkgl_reshape(GtkWidget *widget, GdkEventConfigure * event, gpointer func_data);
+gint     gtkgl_init(GtkWidget *widget, gpointer func_data);
+gint     gtkgl_destroy(GtkWidget *widget, gpointer func_data);
 
 void     draw_roi_box(Pane_info pane, View_info view);
 void     draw_crosshair(Pane_info pane, View_info view);
@@ -56,99 +58,70 @@ void     draw_bbox_line(double *obl_norm, double *obl_point,
                         double *min_vec, double *max_vec);
 
 /* Configure the OpenGL framebuffer */
-GdkGLConfig *configure_gtkgl(void)
-{
-   GdkGLConfig *glconfig;
-
-   /* Try double-buffered visual */
-   glconfig = gdk_gl_config_new_by_mode(GDK_GL_MODE_RGBA | GDK_GL_MODE_DOUBLE);
-   if(glconfig == NULL){
-      g_print("*** Cannot find the double-buffered visual.\n");
-      g_print("*** Trying single-buffered visual.\n");
-
-      /* Try single-buffered visual */
-      glconfig = gdk_gl_config_new_by_mode(GDK_GL_MODE_RGBA);
-      if(glconfig == NULL){
-         g_print("*** No appropriate OpenGL-capable visual found.\n");
-         exit(EXIT_FAILURE);
-         }
+GdkGLConfig *configure_gtkgl(Main_info * ptr)
+{   
+   /* set up the GdkGLConfig */
+   ptr->glconfig = gdk_gl_config_new_by_mode(GDK_GL_MODE_RGB | 
+                                             GDK_GL_MODE_ALPHA |
+                                             GDK_GL_MODE_DEPTH |
+                                             GDK_GL_MODE_DOUBLE);
+   if(ptr->glconfig == NULL){
+      g_print("*** Cannot find an approriate double-buffered visual.\n");
+      exit(EXIT_FAILURE);
       }
 
-   return glconfig;
+   /* set up the shared widget */
+   ptr->gtkgl_share = gtk_drawing_area_new();
+   gtk_widget_set_gl_capability(ptr->gtkgl_share,
+                                ptr->glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
+   gtk_box_pack_start(GTK_BOX(ptr->main_vbox), ptr->gtkgl_share, FALSE, FALSE, 0);
+   gtk_widget_realize(ptr->gtkgl_share);
+
+   /* set up the shared context object */
+   ptr->glcontext = gtk_widget_get_gl_context(ptr->gtkgl_share);
    }
 
 
-GtkWidget *create_glarea(Pane_info pane, View_info view)
+GtkWidget *create_gtkgl_widget(Main_info * ptr, Pane_info pane, View_info view)
 {
-//    Main_info *ptr = get_main_ptr();
 //    int      attrlist[13];
-//    GtkWidget *glarea;
-//    Gtkglarea_info *gtkglarea_info;
-// 
-//    gtkglarea_info = (Gtkglarea_info *) g_malloc(sizeof(Gtkglarea_info));
-//    gtkglarea_info->pane = pane;
-//    gtkglarea_info->view = view;
-// 
-//    /* Choose the attributes that we would like for our visual. */
-//    /* These attributes are passed to glXChooseVisual by the    */
-//    /* gdk (see gdk_gl_choose_visual in gdkgl.c from the        */
-//    /* GtkGlarea distro).                                       */
-//    /*                                                          */
-//    /* From the glXChooseVisual manpage:                        */
-//    /* glXChooseVisual returns a pointer to an XVisualInfo      */
-//    /* structure describing the visual that best meets a        */
-//    /* minimum specification.                                   */
-//    attrlist[0] = GDK_GL_RGBA;
-//    attrlist[1] = GDK_GL_DOUBLEBUFFER;
-//    attrlist[2] = GDK_GL_RED_SIZE;
-//    attrlist[3] = 1;
-//    attrlist[4] = GDK_GL_GREEN_SIZE;
-//    attrlist[5] = 1;
-//    attrlist[6] = GDK_GL_BLUE_SIZE;
-//    attrlist[7] = 1;
-//    attrlist[8] = GDK_GL_ALPHA_SIZE;
-//    attrlist[9] = 1;
-//    attrlist[10] = GDK_GL_DEPTH_SIZE;
-//    attrlist[11] = 1;
-//    attrlist[12] = GDK_GL_NONE;
-// 
-//    if(gdk_gl_query() == FALSE){
-//       g_error(_("OpenGL not supported!\n"));
-//       return NULL;
-//       }
-// 
-//    /* Now, create the GtkGLArea using the attribute list that  */
-//    /* we defined above.                                        */
-//    if((glarea =
-//         gtk_gl_area_share_new(attrlist, (GtkGLArea *) ptr->glarea_share)) == NULL){
-//       g_error(_("Error creating GtkGLArea!\n"));
-//       return NULL;
-//       }
-// 
-//    /* Check out gdk/gdktypes.h in your include directory for a */
-//    /* complete list of event masks that you can use.           */
-//    gtk_widget_set_events(GTK_WIDGET(glarea), GDK_EXPOSURE_MASK
-//                          | GDK_BUTTON_PRESS_MASK
-//                          | GDK_BUTTON_RELEASE_MASK
-//                          | GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK);
-// 
-//    gtk_signal_connect(GTK_OBJECT(glarea), "button_press_event",
-//                       GTK_SIGNAL_FUNC(glarea_button_press), gtkglarea_info);
-//    gtk_signal_connect(GTK_OBJECT(glarea), "motion_notify_event",
-//                       GTK_SIGNAL_FUNC(glarea_motion_notify), gtkglarea_info);
-//    gtk_signal_connect(GTK_OBJECT(glarea), "button_release_event",
-//                       GTK_SIGNAL_FUNC(glarea_button_release), gtkglarea_info);
-//    gtk_signal_connect(GTK_OBJECT(glarea), "expose_event",
-//                       GTK_SIGNAL_FUNC(glarea_draw), gtkglarea_info);
-//    gtk_signal_connect(GTK_OBJECT(glarea), "configure_event",
-//                       GTK_SIGNAL_FUNC(glarea_reshape), gtkglarea_info);
-//    gtk_signal_connect(GTK_OBJECT(glarea), "realize",
-//                       GTK_SIGNAL_FUNC(glarea_init), gtkglarea_info);
-//    gtk_signal_connect(GTK_OBJECT(glarea), "destroy",
-//                       GTK_SIGNAL_FUNC(glarea_destroy), gtkglarea_info);
-// 
-//   return (glarea);
-   return (NULL);
+   GtkWidget *gtkgl_widget;
+   GtkGL_info *gtkgl_info;
+
+   gtkgl_info = (GtkGL_info *) g_malloc(sizeof(GtkGL_info));
+   gtkgl_info->ptr = ptr;
+   gtkgl_info->pane = pane;
+   gtkgl_info->view = view;
+
+   /* create the widget */
+   gtkgl_widget = gtk_drawing_area_new();
+   gtk_widget_set_gl_capability(gtkgl_widget, ptr->glconfig, ptr->glcontext,
+                                TRUE, GDK_GL_RGBA_TYPE);
+
+   /* Check out gdk/gdktypes.h for a list of event masks. */
+   gtk_widget_set_events(GTK_WIDGET(gtkgl_widget), GDK_EXPOSURE_MASK
+                         | GDK_BUTTON_PRESS_MASK
+                         | GDK_BUTTON_RELEASE_MASK
+                         | GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK);
+
+   /* add callbacks */
+   g_signal_connect(GTK_OBJECT(gtkgl_widget), "realize",
+                    G_CALLBACK(gtkgl_init), gtkgl_info);
+   g_signal_connect(GTK_OBJECT(gtkgl_widget), "configure_event",
+                    G_CALLBACK(gtkgl_reshape), gtkgl_info);
+   g_signal_connect(GTK_OBJECT(gtkgl_widget), "expose_event",
+                    G_CALLBACK(gtkgl_draw), gtkgl_info);
+   g_signal_connect(GTK_OBJECT(gtkgl_widget), "destroy",
+                    G_CALLBACK(gtkgl_destroy), gtkgl_info);
+
+   g_signal_connect(GTK_OBJECT(gtkgl_widget), "button_press_event",
+                    G_CALLBACK(gtkgl_button_press), gtkgl_info);
+   g_signal_connect(GTK_OBJECT(gtkgl_widget), "motion_notify_event",
+                    G_CALLBACK(gtkgl_motion_notify), gtkgl_info);
+   g_signal_connect(GTK_OBJECT(gtkgl_widget), "button_release_event",
+                    G_CALLBACK(gtkgl_button_release), gtkgl_info);
+
+   return (gtkgl_widget);
    }
 
 /* convenience fnuction to redraw all views in a pane */
@@ -163,7 +136,7 @@ void redraw_pane_views(Pane_info pane)
 
 void redraw_pane_view(View_info view)
 {
-   gtk_widget_queue_draw(GTK_WIDGET(view->glarea));
+   gtk_widget_queue_draw(GTK_WIDGET(view->gtkgl_widget));
    }
 
 /* checks is a slice needs re-orienting and calls the re-draw */
@@ -256,7 +229,7 @@ void calc_merge_extents(Pane_info merge)
    }
 
 /* find the current point on the plane via ray casting */
-void update_glarea_coords(Pane_info pane, View_info view, GLdouble x, GLdouble y)
+void update_gtkgl_coords(Pane_info pane, View_info view, GLdouble x, GLdouble y)
 {
    double   n_point[3], f_point[3];
 
@@ -278,8 +251,8 @@ void update_glarea_coords(Pane_info pane, View_info view, GLdouble x, GLdouble y
       }
    }
 
-void translate_glarea(Pane_info pane, View_info view,
-                      double beginx, double beginy, double x, double y)
+void translate_gtkgl(Pane_info pane, View_info view,
+                     double beginx, double beginy, double x, double y)
 {
    GLdouble begin_x, begin_y, begin_z;
    GLdouble after_x, after_y, after_z;
@@ -306,12 +279,12 @@ void translate_glarea(Pane_info pane, View_info view,
       }
    }
 
-/* This function handles button-press events for the GtkGLArea */
-gint glarea_button_press(GtkWidget *widget, GdkEventButton * event, gpointer func_data)
+/* This function handles button-press events for the GtkGL widget */
+gint gtkgl_button_press(GtkWidget *widget, GdkEventButton * event, gpointer func_data)
 {
    Main_info *ptr = get_main_ptr();
-   Pane_info pane = ((Gtkglarea_info *) func_data)->pane;
-   View_info view = ((Gtkglarea_info *) func_data)->view;
+   Pane_info pane = ((GtkGL_info *) func_data)->pane;
+   View_info view = ((GtkGL_info *) func_data)->view;
 
    /* if we don't have to draw this pane, return early */
    if(!pane->draw){
@@ -336,7 +309,7 @@ gint glarea_button_press(GtkWidget *widget, GdkEventButton * event, gpointer fun
          view->translating = TRUE;
          }
       else{
-         update_glarea_coords(pane, view, view->pix_start_pos[0], view->pix_start_pos[1]);
+         update_gtkgl_coords(pane, view, view->pix_start_pos[0], view->pix_start_pos[1]);
          }
       break;
 
@@ -378,11 +351,11 @@ gint glarea_button_press(GtkWidget *widget, GdkEventButton * event, gpointer fun
    return TRUE;
    }
 
-/* This function handles button-release events for the GtkGLArea */
-gint glarea_button_release(GtkWidget *widget, GdkEventButton * event, gpointer func_data)
+/* This function handles button-release events for the GtkGL widget */
+gint gtkgl_button_release(GtkWidget *widget, GdkEventButton * event, gpointer func_data)
 {
    Main_info *ptr = get_main_ptr();
-   View_info view = ((Gtkglarea_info *) func_data)->view;
+   View_info view = ((GtkGL_info *) func_data)->view;
    gdouble  elapsed_time;
    gchar    buf[128];
 
@@ -405,12 +378,12 @@ gint glarea_button_release(GtkWidget *widget, GdkEventButton * event, gpointer f
    return TRUE;
    }
 
-/* This function handles motion events for the GtkGLArea */
-gint glarea_motion_notify(GtkWidget *widget, GdkEventMotion * event, gpointer func_data)
+/* This function handles motion events for the GtkGL widget */
+gint gtkgl_motion_notify(GtkWidget *widget, GdkEventMotion * event, gpointer func_data)
 {
    Main_info *ptr = get_main_ptr();
-   Pane_info pane = ((Gtkglarea_info *) func_data)->pane;
-   View_info view = ((Gtkglarea_info *) func_data)->view;
+   Pane_info pane = ((GtkGL_info *) func_data)->pane;
+   View_info view = ((GtkGL_info *) func_data)->view;
 
    double   delta_x, delta_y, tmp;
    View_info v_ptr;
@@ -451,19 +424,19 @@ gint glarea_motion_notify(GtkWidget *widget, GdkEventMotion * event, gpointer fu
 
    if(state & GDK_BUTTON1_MASK){
       if(state & GDK_SHIFT_MASK){
-         translate_glarea(pane, view, view->pix_start_pos[0],
-                          view->pix_start_pos[1], view->pix_start_pos[0] + delta_x,
-                          view->pix_start_pos[1] + delta_y);
+         translate_gtkgl(pane, view, view->pix_start_pos[0],
+                         view->pix_start_pos[1], view->pix_start_pos[0] + delta_x,
+                         view->pix_start_pos[1] + delta_y);
          update_pi_trans(ptr, view->GLtrans_x, view->GLtrans_y, view->GLtrans_z);
 
          if(pane->link_trans){
             for(c = 0; c < pane->views->len; c++){
                v_ptr = g_ptr_array_index(pane->views, c);
                if(v_ptr != view){
-                  translate_glarea(pane, v_ptr,
-                                   v_ptr->pix_start_pos[0], v_ptr->pix_start_pos[1],
-                                   v_ptr->pix_start_pos[0] + delta_x,
-                                   v_ptr->pix_start_pos[1] + delta_y);
+                  translate_gtkgl(pane, v_ptr,
+                                  v_ptr->pix_start_pos[0], v_ptr->pix_start_pos[1],
+                                  v_ptr->pix_start_pos[0] + delta_x,
+                                  v_ptr->pix_start_pos[1] + delta_y);
                   v_ptr->refresh_view = TRUE;
                   redraw_pane_view(v_ptr);
                   }
@@ -471,8 +444,8 @@ gint glarea_motion_notify(GtkWidget *widget, GdkEventMotion * event, gpointer fu
             }
          }
       else{
-         update_glarea_coords(pane, view, view->pix_start_pos[0] + delta_x,
-                              view->pix_start_pos[1] + delta_y);
+         update_gtkgl_coords(pane, view, view->pix_start_pos[0] + delta_x,
+                             view->pix_start_pos[1] + delta_y);
          }
       }
 
@@ -681,9 +654,9 @@ void load_view_texmap(Pane_info pane, View_info view)
    view->reload_texmap = FALSE;
    }
 
-/* This is the function that should render your scene to the GtkGLArea. It   */
-/* can be used as a callback to the 'Expose' event.                          */
-gint glarea_draw(GtkWidget *widget, GdkEventExpose * event, gpointer func_data)
+/* This is the function that should render your scene to the GtkGL widget. */
+/* It can be used as a callback to the 'Expose' event.                     */
+gint gtkgl_draw(GtkWidget *widget, GdkEventExpose * event, gpointer func_data)
 {
    Main_info *ptr = get_main_ptr();
    GLdouble tmp_m[4][4];
@@ -691,9 +664,12 @@ gint glarea_draw(GtkWidget *widget, GdkEventExpose * event, gpointer func_data)
    GLdouble world_h, world_w, world_b, world_l;
    int      c, i;
 
+   GdkGLDrawable *gldrawable;
+   GdkGLContext *glcontext;
+
    /* Get pointer to info structs */
-   Pane_info pane = ((Gtkglarea_info *) func_data)->pane;
-   View_info view = ((Gtkglarea_info *) func_data)->view;
+   Pane_info pane = ((GtkGL_info *) func_data)->pane;
+   View_info view = ((GtkGL_info *) func_data)->view;
 
    /* Draw only on the last expose event. */
    if(event->count > 0){
@@ -705,233 +681,241 @@ gint glarea_draw(GtkWidget *widget, GdkEventExpose * event, gpointer func_data)
       return TRUE;
       }
 
-//   if(gtk_gl_area_make_current(GTK_GL_AREA(widget))){
-   if(1){
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   /* get the current drawable and context and make it current */
+   gldrawable = gtk_widget_get_gl_drawable(widget);
+   glcontext = gtk_widget_get_gl_context(widget);
 
-      /* recalculate the model view if needed */
-      if(view->recalc_view){
+   if(!gdk_gl_drawable_gl_begin(gldrawable, glcontext)){
+      return FALSE;
+      }
 
-         /* set up widths and heights */
-         world_w = fabs(pane->stops[view->x_idx] - pane->starts[view->x_idx]);
-         world_h = fabs(pane->stops[view->y_idx] - pane->starts[view->y_idx]);
+   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-         world_l = (pane->starts[view->x_idx] < pane->stops[view->x_idx])
-            ? pane->starts[view->x_idx]
-            : pane->stops[view->x_idx];
+   /* recalculate the model view if needed */
+   if(view->recalc_view){
 
-         world_b = (pane->starts[view->y_idx] < pane->stops[view->y_idx])
-            ? pane->starts[view->y_idx]
-            : pane->stops[view->y_idx];
+      /* set up widths and heights */
+      world_w = fabs(pane->stops[view->x_idx] - pane->starts[view->x_idx]);
+      world_h = fabs(pane->stops[view->y_idx] - pane->starts[view->y_idx]);
 
-         /* if height is the limiting direction */
-         if((world_h / view->pix_size[1]) > (world_w / view->pix_size[0])){
-            view->view_start[0] = (view->view_stop[0] * world_l) / world_w;
-            view->view_start[1] = world_b;
+      world_l = (pane->starts[view->x_idx] < pane->stops[view->x_idx])
+         ? pane->starts[view->x_idx]
+         : pane->stops[view->x_idx];
 
-            view->view_stop[0] = (view->pix_size[0] * world_h) / view->pix_size[1];
-            view->view_stop[1] = world_h;
-            }
-         else{                        /* width is the limiting direction */
-            view->view_start[0] = world_l;
-            view->view_start[1] = (view->view_stop[1] * world_b) / world_h;
+      world_b = (pane->starts[view->y_idx] < pane->stops[view->y_idx])
+         ? pane->starts[view->y_idx]
+         : pane->stops[view->y_idx];
 
-            view->view_stop[0] = world_w;
-            view->view_stop[1] = (view->pix_size[1] * world_w) / view->pix_size[0];
-            }
-         view->view_stop[0] += view->view_start[0];
-         view->view_stop[1] += view->view_start[1];
+      /* if height is the limiting direction */
+      if((world_h / view->pix_size[1]) > (world_w / view->pix_size[0])){
+         view->view_start[0] = (view->view_stop[0] * world_l) / world_w;
+         view->view_start[1] = world_b;
+
+         view->view_stop[0] = (view->pix_size[0] * world_h) / view->pix_size[1];
+         view->view_stop[1] = world_h;
+         }
+      else{                           /* width is the limiting direction */
+         view->view_start[0] = world_l;
+         view->view_start[1] = (view->view_stop[1] * world_b) / world_h;
+
+         view->view_stop[0] = world_w;
+         view->view_stop[1] = (view->pix_size[1] * world_w) / view->pix_size[0];
+         }
+      view->view_stop[0] += view->view_start[0];
+      view->view_stop[1] += view->view_start[1];
+      }
+
+   /* refresh the view if needed */
+   if(view->refresh_view){
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+
+      for(c = 0; c < pane->n_dims; c++){
+         max_dist += SQR(pane->stops[c] - pane->starts[c]);
+         }
+      max_dist = sqrt(max_dist);
+
+      if(pane->perspective){
+         glFrustum(view->view_start[0], view->view_stop[0],
+                   view->view_start[1], view->view_stop[1],
+                   (max_dist * 0.4) * view->GLscalefac,
+                   (max_dist * 2.6) * view->GLscalefac);
+         }
+      else{
+         glOrtho(view->view_start[0], view->view_stop[0],
+                 view->view_start[1], view->view_stop[1],
+                 (max_dist * 0.2) * view->GLscalefac,
+                 (max_dist * 2.8) * view->GLscalefac);
          }
 
-      /* refresh the view if needed */
-      if(view->refresh_view){
-         glMatrixMode(GL_PROJECTION);
-         glLoadIdentity();
+      /* look at the center of the volume */
+      gluLookAt(pane->cov[0],
+                pane->cov[1],
+                pane->cov[2] + ((max_dist * 1.5) * view->GLscalefac),
+                pane->cov[0], pane->cov[1], pane->cov[2], 0, 1, 0);
 
-         for(c = 0; c < pane->n_dims; c++){
-            max_dist += SQR(pane->stops[c] - pane->starts[c]);
-            }
-         max_dist = sqrt(max_dist);
+      /* move back to the middle */
+      glTranslated(pane->cov[0], pane->cov[1], pane->cov[2]);
 
-         if(pane->perspective){
-            glFrustum(view->view_start[0], view->view_stop[0],
-                      view->view_start[1], view->view_stop[1],
-                      (max_dist * 0.4) * view->GLscalefac,
-                      (max_dist * 2.6) * view->GLscalefac);
-            }
-         else{
-            glOrtho(view->view_start[0], view->view_stop[0],
-                    view->view_start[1], view->view_stop[1],
-                    (max_dist * 0.2) * view->GLscalefac,
-                    (max_dist * 2.8) * view->GLscalefac);
-            }
+      //glTranslated(-pane->w[0], -pane->w[1], -pane->w[2]);
+      //build_rotmatrix(tmp_m, view->rot_quat);
 
-         /* look at the center of the volume */
-         gluLookAt(pane->cov[0],
-                   pane->cov[1],
-                   pane->cov[2] + ((max_dist * 1.5) * view->GLscalefac),
-                   pane->cov[0], pane->cov[1], pane->cov[2], 0, 1, 0);
+      //glMultMatrixd(&tmp_m[0][0]);
+      //vmult(tmp, pane->w, tmp_m);
+      //glTranslated(-tmp[0], -tmp[1], -tmp[2]);
 
-         /* move back to the middle */
-         glTranslated(pane->cov[0], pane->cov[1], pane->cov[2]);
+      //glGetDoublev(GL_PROJECTION_MATRIX,  &tmp_m[0][0]);
+      //g_print("matrix|%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][0], tmp_m[1][0], tmp_m[2][0], tmp_m[3][0]);
+      //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][1], tmp_m[1][1], tmp_m[2][1], tmp_m[3][1]);
+      //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][2], tmp_m[1][2], tmp_m[2][2], tmp_m[3][2]);
+      //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][3], tmp_m[1][3], tmp_m[2][3], tmp_m[3][3]);
 
-         //glTranslated(-pane->w[0], -pane->w[1], -pane->w[2]);
-         //build_rotmatrix(tmp_m, view->rot_quat);
+      /* rotate about the current co-ordinate, scale and translate */
+      glRotated(-view->rot_phi * 180 / M_PI, view->rot_vec[0], view->rot_vec[1],
+                view->rot_vec[2]);
 
-         //glMultMatrixd(&tmp_m[0][0]);
-         //vmult(tmp, pane->w, tmp_m);
-         //glTranslated(-tmp[0], -tmp[1], -tmp[2]);
+      /* scale about the current world position */
+      glScaled(view->GLscalefac, view->GLscalefac, view->GLscalefac);
 
-         //glGetDoublev(GL_PROJECTION_MATRIX,  &tmp_m[0][0]);
-         //g_print("matrix|%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][0], tmp_m[1][0], tmp_m[2][0], tmp_m[3][0]);
-         //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][1], tmp_m[1][1], tmp_m[2][1], tmp_m[3][1]);
-         //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][2], tmp_m[1][2], tmp_m[2][2], tmp_m[3][2]);
-         //g_print("      |%2.5f|%2.5f|%2.5f|%2.5f|\n", tmp_m[0][3], tmp_m[1][3], tmp_m[2][3], tmp_m[3][3]);
+      glTranslated(view->GLtrans_x, view->GLtrans_y, view->GLtrans_z);
+      glGetDoublev(GL_PROJECTION_MATRIX, view->projMatrix);
 
-         /* rotate about the current co-ordinate, scale and translate */
-         glRotated(-view->rot_phi * 180 / M_PI, view->rot_vec[0], view->rot_vec[1],
-                   view->rot_vec[2]);
+      /* set the viewing position to the identity matrix */
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity();
+      glGetDoublev(GL_MODELVIEW_MATRIX, view->modelMatrix);
 
-         /* scale about the current world position */
-         glScaled(view->GLscalefac, view->GLscalefac, view->GLscalefac);
+      view->refresh_view = FALSE;
+      }
 
-         glTranslated(view->GLtrans_x, view->GLtrans_y, view->GLtrans_z);
-         glGetDoublev(GL_PROJECTION_MATRIX, view->projMatrix);
+   /* draw the data */
+   if(pane->merge){
 
-         /* set the viewing position to the identity matrix */
-         glMatrixMode(GL_MODELVIEW);
-         glLoadIdentity();
-         glGetDoublev(GL_MODELVIEW_MATRIX, view->modelMatrix);
+      double   fac;
 
-         view->refresh_view = FALSE;
-         }
+      glPushMatrix();
 
-      /* draw the data */
-      if(pane->merge){
+      for(c = 0; c < NUM_MERGE_COEFF; c++){
+         if(pane->merge_panes[c] != NULL){
 
-         double   fac;
-
-         glPushMatrix();
-
-         for(c = 0; c < NUM_MERGE_COEFF; c++){
-            if(pane->merge_panes[c] != NULL){
-
-               glTranslated(0.0, 0.0, 1.0);
-               //for(i=0; i<20; i++){
-               //   fac = ((double)i)/20;
-               //   glAlphaFunc(GL_GREATER, 1.0-fac);
-               //   glTranslated(0.0, 0.0, -fac);
+            glTranslated(0.0, 0.0, 1.0);
+            //for(i=0; i<20; i++){
+            //   fac = ((double)i)/20;
+            //   glAlphaFunc(GL_GREATER, 1.0-fac);
+            //   glTranslated(0.0, 0.0, -fac);
 
 
-               //   }
-               //glPopMatrix();
+            //   }
+            //glPopMatrix();
 
-               if(pane->merge_panes[c]->vector && (pane->merge_panes[c]->n_dims != 3)){
-                  draw_vector_slice(pane->merge_panes[c], view);
+            if(pane->merge_panes[c]->vector && (pane->merge_panes[c]->n_dims != 3)){
+               draw_vector_slice(pane->merge_panes[c], view);
+               }
+            else{
+
+               /* force a reload of cmaps per view */
+               for(i = 0; i < pane->views->len; i++){
+                  ((View_info) g_ptr_array_index(pane->views, i))->reload_cmap = TRUE;
+                  }
+
+               if(c == 0){
+                  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
                   }
                else{
-
-                  /* force a reload of cmaps per view */
-                  for(i = 0; i < pane->views->len; i++){
-                     ((View_info) g_ptr_array_index(pane->views, i))->reload_cmap = TRUE;
-                     }
-
-                  if(c == 0){
-                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                     }
-                  else{
-                     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-                     }
-
-                  glEnable(GL_ALPHA_TEST);
-                  glAlphaFunc(GL_GREATER, pane->merge_coeff[c] / 100);
-
-                  if(!draw_texture_slice(pane->merge_panes[c], view)){
-                     // write error message to statusbar
-                     return FALSE;
-                     }
-
-                  glDisable(GL_ALPHA_TEST);
+                  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
                   }
+
+               glEnable(GL_ALPHA_TEST);
+               glAlphaFunc(GL_GREATER, pane->merge_coeff[c] / 100);
+
+               if(!draw_texture_slice(pane->merge_panes[c], view)){
+                  // write error message to statusbar
+                  return FALSE;
+                  }
+
+               glDisable(GL_ALPHA_TEST);
                }
-            }
-
-         glPopMatrix();
-         }
-
-      else{
-         if(pane->vector && (pane->n_dims != 3)){
-            draw_vector_slice(pane, view);
-            }
-         else{
-            glEnable(GL_ALPHA_TEST);
-            glAlphaFunc(GL_GREATER, pane->alpha_thresh);
-
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-            if(!draw_texture_slice(pane, view)){
-               // write error message to statusbar
-               return FALSE;
-               }
-
-            glDisable(GL_ALPHA_TEST);
-            }
-         }
-
-      /* draw the bounding box, slice box, roi box and crosshair    */
-      /* we draw these after the slice so that they blend correctly */
-      if(pane->bounding_box){
-         glLineWidth(1.5);
-         glColor4d(0.0, 0.5, 1.0, 0.5);
-         draw_bounding_box(pane, view);
-         }
-
-      if(pane->slice_box){
-         glLineWidth(1.0);
-         glColor4d(1.0, 1.0, 0.3, 0.7);
-         draw_slice_box(pane, view);
-         }
-
-      /* translate to the cursor position before the following */
-      glPushMatrix();
-      glTranslated(pane->w[0], pane->w[1], pane->w[2]);
-
-      if(pane->roi_type != ROI_NONE){
-         glLineWidth(1.0);
-         glColor4d(0.0, 0.3, 0.3, 0.9);
-         draw_roi_box(pane, view);
-         }
-
-      if(pane->crosshair){
-         if(view->tilt){
-            glColor4d(1.0, 0, 0, 0.3);
-            }
-         else{
-            glColor4d(1.0, 0, 0, 1.0);
-            }
-         draw_crosshair(pane, view);
-         }
-
-      /* rotate to the oblique plane then draw tilt up-vector */
-      if(view->tilt){
-         build_rotmatrix(tmp_m, view->tilt_quat);
-         glMultMatrixd(&tmp_m[0][0]);
-
-         glColor4d(1.0, 1.0, 0.0, 1.0);
-         draw_crosshair(pane, view);
-
-         /* and the rotating sphere if we are actively tilting */
-         if(view->tilting){
-            glLineWidth(1.0);
-            glColor4d(1.0, 1.0, 1.0, 0.2);
-            gluQuadricDrawStyle(view->quadric, GLU_LINE);
-            gluSphere(view->quadric, 40, 15, 15);
             }
          }
 
       glPopMatrix();
-
-//      gtk_gl_area_swap_buffers(GTK_GL_AREA(widget));
       }
+
+   else{
+      if(pane->vector && (pane->n_dims != 3)){
+         draw_vector_slice(pane, view);
+         }
+      else{
+         glEnable(GL_ALPHA_TEST);
+         glAlphaFunc(GL_GREATER, pane->alpha_thresh);
+
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+         if(!draw_texture_slice(pane, view)){
+            // write error message to statusbar
+            return FALSE;
+            }
+
+         glDisable(GL_ALPHA_TEST);
+         }
+      }
+
+   /* draw the bounding box, slice box, roi box and crosshair    */
+   /* we draw these after the slice so that they blend correctly */
+   if(pane->bounding_box){
+      glLineWidth(1.5);
+      glColor4d(0.0, 0.5, 1.0, 0.5);
+      draw_bounding_box(pane, view);
+      }
+
+   if(pane->slice_box){
+      glLineWidth(1.0);
+      glColor4d(1.0, 1.0, 0.3, 0.7);
+      draw_slice_box(pane, view);
+      }
+
+   /* translate to the cursor position before the following */
+   glPushMatrix();
+   glTranslated(pane->w[0], pane->w[1], pane->w[2]);
+
+   if(pane->roi_type != ROI_NONE){
+      glLineWidth(1.0);
+      glColor4d(0.0, 0.3, 0.3, 0.9);
+      draw_roi_box(pane, view);
+      }
+
+   if(pane->crosshair){
+      if(view->tilt){
+         glColor4d(1.0, 0, 0, 0.3);
+         }
+      else{
+         glColor4d(1.0, 0, 0, 1.0);
+         }
+      draw_crosshair(pane, view);
+      }
+
+   /* rotate to the oblique plane then draw tilt up-vector */
+   if(view->tilt){
+      build_rotmatrix(tmp_m, view->tilt_quat);
+      glMultMatrixd(&tmp_m[0][0]);
+
+      glColor4d(1.0, 1.0, 0.0, 1.0);
+      draw_crosshair(pane, view);
+
+      /* and the rotating sphere if we are actively tilting */
+      if(view->tilting){
+         glLineWidth(1.0);
+         glColor4d(1.0, 1.0, 1.0, 0.2);
+         gluQuadricDrawStyle(view->quadric, GLU_LINE);
+         gluSphere(view->quadric, 40, 15, 15);
+         }
+      }
+
+   glPopMatrix();
+
+   /* Swap buffers. */
+   gdk_gl_drawable_swap_buffers(gldrawable);
+
+   gdk_gl_drawable_gl_end(gldrawable);
 
    /* increment the draw count */
    ptr->draw_count++;
@@ -939,69 +923,83 @@ gint glarea_draw(GtkWidget *widget, GdkEventExpose * event, gpointer func_data)
    }
 
 /* This should be called whenever the size of the area changes   */
-gint glarea_reshape(GtkWidget *widget, GdkEventConfigure * event, gpointer func_data)
+gint gtkgl_reshape(GtkWidget *widget, GdkEventConfigure * event, gpointer func_data)
 {
+   GdkGLDrawable *gldrawable;
+   GdkGLContext *glcontext;
 
-   /* Get pointer to gtkglarea info */
-   Pane_info pane = ((Gtkglarea_info *) func_data)->pane;
-   View_info view = ((Gtkglarea_info *) func_data)->view;
+   /* Get pointer to gtkgl_info */
+   Pane_info pane = ((GtkGL_info *) func_data)->pane;
+   View_info view = ((GtkGL_info *) func_data)->view;
 
    /* if we don't have to draw this pane, return early */
    if(!pane->draw){
       return TRUE;
       }
 
-//   if(gtk_gl_area_make_current(GTK_GL_AREA(widget))){
-   if(1){
+   /* get the current drawable and context and make it current */
+   gldrawable = gtk_widget_get_gl_drawable(widget);
+   glcontext = gtk_widget_get_gl_context(widget);
 
-      view->pix_size[0] = (double)widget->allocation.width;
-      view->pix_size[1] = (double)widget->allocation.height;
-
-      /* setup the viewport */
-      glViewport(0, 0, (GLint) view->pix_size[0], (GLint) view->pix_size[1]);
-      glGetIntegerv(GL_VIEWPORT, view->viewport);
-
-      view->refresh_view = TRUE;
+   if(!gdk_gl_drawable_gl_begin(gldrawable, glcontext)){
+      return FALSE;
       }
 
+   view->pix_size[0] = (double)widget->allocation.width;
+   view->pix_size[1] = (double)widget->allocation.height;
+
+   /* setup the viewport */
+   glViewport(0, 0, (GLint) view->pix_size[0], (GLint) view->pix_size[1]);
+   glGetIntegerv(GL_VIEWPORT, view->viewport);
+
+   view->refresh_view = TRUE;
+
+   gdk_gl_drawable_gl_end(gldrawable);
    return TRUE;
    }
 
-/* This function is a callback for the realization of the GtkGLArea widtget. */
-gint glarea_init(GtkWidget *widget, gpointer func_data)
+/* This function is a callback for the realization of the GtkGL widget. */
+gint gtkgl_init(GtkWidget *widget, gpointer func_data)
 {
+   GdkGLDrawable *gldrawable;
+   GdkGLContext *glcontext;
 
-   /* Get pointer to gtkglarea info */
-   Pane_info pane = ((Gtkglarea_info *) func_data)->pane;
-   View_info view = ((Gtkglarea_info *) func_data)->view;
+   /* Get pointer to gtkgl_info */
+   Pane_info pane = ((GtkGL_info *) func_data)->pane;
+   View_info view = ((GtkGL_info *) func_data)->view;
 
-//   if(gtk_gl_area_make_current(GTK_GL_AREA(widget))){
-   if(1){
+   /* get the current drawable and context and make it current */
+   gldrawable = gtk_widget_get_gl_drawable(widget);
+   glcontext = gtk_widget_get_gl_context(widget);
 
-      /* drawmode */
-      if(pane->draw_fast){
-         glDisable(GL_BLEND);
-         }
-      else{
-         glEnable(GL_BLEND);
-         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-         glEnable(GL_LINE_SMOOTH);
-         }
-
-      glClearColor(0.0, 0.0, 0.0, 1.0);
-      glDepthFunc(GL_LEQUAL);
-      glEnable(GL_DEPTH_TEST);
+   if(!gdk_gl_drawable_gl_begin(gldrawable, glcontext)){
+      return FALSE;
       }
+
+   /* drawmode */
+   if(pane->draw_fast){
+      glDisable(GL_BLEND);
+      }
+   else{
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_LINE_SMOOTH);
+      }
+
+   glClearColor(0.0, 0.0, 0.0, 1.0);
+   glDepthFunc(GL_LEQUAL);
+   glEnable(GL_DEPTH_TEST);
 
    view->quadric = gluNewQuadric();
+
+   gdk_gl_drawable_gl_end(gldrawable);
    return TRUE;
    }
 
-/* This function is a callback for the main GtkGLArea. It should     */
-/* delete any data structures stored in the GtkGLArea.               */
-gint glarea_destroy(GtkWidget *widget, gpointer func_data)
+/* This function is a callback for the main GtkGL widget. */
+gint gtkgl_destroy(GtkWidget *widget, gpointer func_data)
 {
-   View_info view = ((Gtkglarea_info *) func_data)->view;
+   View_info view = ((GtkGL_info *) func_data)->view;
 
    gluDeleteQuadric(view->quadric);
    glDeleteTextures(1, &(view->texmap_id));

@@ -59,7 +59,7 @@ void     cmap_hot_radio_clicked(GtkButton * button, gpointer user_data);
 void     cmap_spect_radio_clicked(GtkButton * button, gpointer user_data);
 void     cmap_bluered_radio_clicked(GtkButton * button, gpointer user_data);
 void     cmap_combo_entry_changed(GtkEditable *editable, gpointer user_data);
-void     file_open_combo_activate(GtkEditable *editable, gpointer user_data);
+void     file_open_entry_activate(GtkEntry *entry, gpointer user_data);
 
 void     hbox_pane_set_focus_child(GtkContainer * container,
                                    GtkWidget *widget, gpointer user_data);
@@ -90,7 +90,6 @@ synch_dialog_delete_event(GtkWidget *widget, GdkEvent * event, gpointer user_dat
 gboolean pane_info_dialog_delete_event(GtkWidget *widget,
                                        GdkEvent * event, gpointer user_data);
 
-void     pi_pane_combo_entry_changed(GtkEditable *editable, gpointer user_data);
 void     pi_pane_add_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_pane_close_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_pane_clone_button_clicked(GtkButton * button, gpointer user_data);
@@ -177,8 +176,6 @@ void     pi_crosshair_checkbutton_toggled(GtkToggleButton * togglebutton,
                                           gpointer user_data);
 void     pi_linear_interp_checkbutton_toggled(GtkToggleButton * togglebutton,
                                               gpointer user_data);
-void     pi_minimise_checkbutton_toggled(GtkToggleButton * togglebutton,
-                                         gpointer user_data);
 void     pi_perspective_checkbutton_toggled(GtkToggleButton * togglebutton,
                                             gpointer user_data);
 void     pi_roi_gauss_checkbutton_toggled(GtkToggleButton * togglebutton,
