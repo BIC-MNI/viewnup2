@@ -3,7 +3,6 @@
 #include <math.h>
 #include "geometry.h"
 
-
 /* inits a vector */
 void vset(double *v, double x, double y, double z)
 {
@@ -174,7 +173,6 @@ int intersect_plane_line_p(double *point,
    return TRUE;
    }
 
-
 /* -------------------------------------------------------------------------- */
 /* Cohoe Sutherland Clipping of a line in a square                            */
 /* http://www.daimi.au.dk/~mbl/cgcourse/wiki/cohen-sutherland_line-cli.html   */
@@ -237,7 +235,7 @@ int cohen_sutherland_clip(double *x0, double *y0,
          x = xmax;
          y = *y0 + (*y1 - *y0) * (xmax - *x0) / (*x1 - *x0);
          }
-      else{
+      else {
          x = xmin;
          y = *y0 + (*y1 - *y0) * (xmin - *x0) / (*x1 - *x0);
          }
@@ -248,7 +246,7 @@ int cohen_sutherland_clip(double *x0, double *y0,
          *y0 = y;
          C0 = ComputeCode(*x0, *y0, xmin, xmax, ymin, ymax);
          }
-      else{
+      else {
          *x1 = x;
          *y1 = y;
          C1 = ComputeCode(*x1, *y1, xmin, xmax, ymin, ymax);

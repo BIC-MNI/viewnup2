@@ -30,10 +30,8 @@
 #define CLONE_VIEW_PIXMAP           110
 #define CLOSE_VIEW_PIXMAP           111
 
-
-
 #include "globals.h"
 
-GtkWidget *create_pixmap(GtkWidget *widget, int pixmap_id);
+GtkWidget *create_pixmap(GtkWidget * widget, int pixmap_id);
 
 #endif

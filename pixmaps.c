@@ -28,7 +28,7 @@ static char *chain_v_xpm[] = {
    ".+++++.+",
    " ..... +",
    "  +++++ "
-};
+   };
 
 static char *locked_xpm[] = {
    "16 16 3 1",
@@ -51,7 +51,7 @@ static char *locked_xpm[] = {
    "  ..    +  ..+  ",
    "  ...........+  ",
    "   +++++++++++  "
-};
+   };
 
 static char *add_xpm[] = {
    "16 16 3 1",
@@ -74,7 +74,7 @@ static char *add_xpm[] = {
    "        ++      ",
    "                ",
    "                "
-};
+   };
 
 static char *slide_xpm[] = {
    "16 16 3 1",
@@ -97,7 +97,7 @@ static char *slide_xpm[] = {
    "  ...+          ",
    "   +++          ",
    "                "
-};
+   };
 
 static char *close_xpm[] = {
    "16 16 3 1",
@@ -120,7 +120,7 @@ static char *close_xpm[] = {
    "                ",
    "                ",
    "                "
-};
+   };
 
 static char *clone_xpm[] = {
    "16 16 3 1",
@@ -143,7 +143,7 @@ static char *clone_xpm[] = {
    "    +  .+.. ++  ",
    "        . ++    ",
    "         +      "
-};
+   };
 
 static char *translation_xpm[] = {
    "16 16 3 1",
@@ -166,7 +166,7 @@ static char *translation_xpm[] = {
    "      ...+      ",
    "       .+       ",
    "       +        "
-};
+   };
 
 static char *rotation_xpm[] = {
    "16 16 3 1",
@@ -189,7 +189,7 @@ static char *rotation_xpm[] = {
    "   +.....+++    ",
    "     +++++      ",
    "                "
-};
+   };
 
 static char *scale_xpm[] = {
    "16 16 3 1",
@@ -212,7 +212,7 @@ static char *scale_xpm[] = {
    "      ...++     ",
    "       .++      ",
    "        +       "
-};
+   };
 
 static char *tilt_xpm[] = {
    "16 16 53 1",
@@ -285,7 +285,7 @@ static char *tilt_xpm[] = {
    "   j[k    1l    ",
    "   mn           ",
    "                "
-};
+   };
 
 static char *perspective_xpm[] = {
    "23 23 3 1",
@@ -315,7 +315,7 @@ static char *perspective_xpm[] = {
    "                       ",
    "                       ",
    "                       "
-};
+   };
 
 static char *orthographic_xpm[] = {
    "23 23 3 1",
@@ -345,7 +345,7 @@ static char *orthographic_xpm[] = {
    "    ++++++++++++       ",
    "                       ",
    "                       "
-};
+   };
 
 static char *volume_xpm[] = {
    "23 23 4 1",
@@ -376,7 +376,7 @@ static char *volume_xpm[] = {
    "        ......@@@      ",
    "         @@@@@@        ",
    "                       "
-};
+   };
 
 static char *add_pane_xpm[] = {
    "24 24 3 1",
@@ -407,7 +407,7 @@ static char *add_pane_xpm[] = {
    "       ..+ +++++++++    ",
    "        ++              ",
    "                        "
-};
+   };
 
 static char *clone_pane_xpm[] = {
    "24 24 3 1",
@@ -438,7 +438,7 @@ static char *clone_pane_xpm[] = {
    "          .........+    ",
    "           +++++++++    ",
    "                        "
-};
+   };
 
 static char *close_pane_xpm[] = {
    "24 24 3 1",
@@ -469,7 +469,7 @@ static char *close_pane_xpm[] = {
    "     ..++ ....  ++++    ",
    "     .++   ..++         ",
    "      +     ++          "
-};
+   };
 
 static char *add_view_xpm[] = {
    "24 24 4 1",
@@ -501,7 +501,7 @@ static char *add_view_xpm[] = {
    "       ..@              ",
    "       ..@              ",
    "        @@              "
-};
+   };
 
 static char *clone_view_xpm[] = {
    "24 24 4 1",
@@ -533,7 +533,7 @@ static char *clone_view_xpm[] = {
    "                        ",
    "                        ",
    "                        "
-};
+   };
 
 static char *close_view_xpm[] = {
    "24 24 4 1",
@@ -565,7 +565,7 @@ static char *close_view_xpm[] = {
    "     ..@@ ....          ",
    "     .@@   ..@@         ",
    "      @     @@          "
-};
+   };
 
 static char *add_transverse_view_xpm[] = {
    "24 24 4 1",
@@ -597,7 +597,7 @@ static char *add_transverse_view_xpm[] = {
    "       ..+              ",
    "       ..+              ",
    "        ++              "
-};
+   };
 
 static char *add_sagittal_view_xpm[] = {
    "24 24 4 1",
@@ -629,7 +629,7 @@ static char *add_sagittal_view_xpm[] = {
    "       ..@              ",
    "       ..@              ",
    "        @@              "
-};
+   };
 
 static char *add_coronal_view_xpm[] = {
    "24 24 4 1",
@@ -661,11 +661,10 @@ static char *add_coronal_view_xpm[] = {
    "       ..@              ",
    "       ..@              ",
    "        @@              "
-};
-
+   };
 
 /* make a pixmap */
-GtkWidget *create_pixmap(GtkWidget *widget, int pixmap_id)
+GtkWidget *create_pixmap(GtkWidget * widget, int pixmap_id)
 {
    GtkWidget *pixmap;
    GdkColormap *colormap;

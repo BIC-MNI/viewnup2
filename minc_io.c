@@ -11,7 +11,6 @@ static STRING axis_order_4D_time[4] = { MIzspace, MIyspace, MIxspace, MItime };
 static STRING axis_order_4D_vector[4] =
    { MIzspace, MIyspace, MIxspace, MIvector_dimension };
 
-
 int start_open_minc_file_to_pane(Pane_info pane, char *filename)
 {
    int      sizes[MAX_VAR_DIMS];
@@ -22,7 +21,6 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
    minc_input_options options;
    int      c;
    gchar    buf[128];
-
 
    if(filename == NULL){
       g_print("Oook!, open file was passed a NULL pointer\n");
@@ -45,7 +43,7 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
          }
       axis_order_ptr = axis_order_3D;
       }
-   else{
+   else {
       axis_order_ptr = NULL;
       for(c = 0; c < pane->n_dims; c++){
 //         g_print("Dim[%d] %s\n", c, dim_names[c]);
@@ -86,15 +84,14 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
                                      pane->pane_min_value, pane->pane_max_value);
       }
 
-
    /* start the volume input */
    if(start_volume_input(filename, pane->n_dims, axis_order_ptr,
-                          NC_BYTE, FALSE, 0.0, 255.0,
-                          TRUE, &(pane->volume), &options, &(pane->input_info)) != OK){
+                         NC_BYTE, FALSE, 0.0, 255.0,
+                         TRUE, &(pane->volume), &options, &(pane->input_info)) != OK){
       return FALSE;
       }
 
-   /* load a little bot of the file to ensure memory is allocated */
+   /* load a little bit of the file to ensure memory is allocated */
    continue_open_minc_file_to_pane(pane);
 
    /* get real range */
@@ -105,7 +102,7 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
       pane->pane_min = pane->pane_min_value;
       pane->pane_max = pane->pane_max_value;
       }
-   else{
+   else {
       pane->pane_min_value = pane->pane_min = pane->real_min;
       pane->pane_max_value = pane->pane_max = pane->real_max;
       }
@@ -155,11 +152,10 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
 /* input a bit more of a volume */
 int continue_open_minc_file_to_pane(Pane_info pane)
 {
-
    if(input_more_of_volume(pane->volume, &(pane->input_info), &(pane->perc_input))){
       return TRUE;
       }
-   else{
+   else {
       delete_volume_input(&(pane->input_info));
       return FALSE;
       }
@@ -216,7 +212,7 @@ int get_minc_image(Pane_info pane, View_info view)
             x_start = 0.5 + pane->v[x_idx] + (y_offset / x_incr);
             x_stop = -0.5 + pane->v[x_idx] - ((pane->sizes[x_idx] - y_offset) / x_incr);
             }
-         else{
+         else {
             x_start = 0.5 + pane->v[x_idx] - ((pane->sizes[x_idx] - y_offset) / x_incr);
             x_stop = -0.5 + pane->v[x_idx] + (y_offset / x_incr);
             }
@@ -234,7 +230,7 @@ int get_minc_image(Pane_info pane, View_info view)
             ptr = memset(ptr, 0, (int)pane->sizes[x_idx]);
             ptr += (int)pane->sizes[x_idx];
             }
-         else{
+         else {
             /* fill the blanks before */
             if(x_start > 0.0){
                ptr = memset(ptr, 0, (int)x_start);
@@ -250,7 +246,7 @@ int get_minc_image(Pane_info pane, View_info view)
                                      vec[2], vec[1], vec[0]);
                   }
                }
-            else{
+            else {
                for(vec[x_idx] = (int)x_start; vec[x_idx] < x_stop; vec[x_idx]++){
 
                   vec[z_idx] = y_offset + ((pane->v[x_idx] - vec[x_idx]) * x_incr);
@@ -258,7 +254,6 @@ int get_minc_image(Pane_info pane, View_info view)
                                      vec[2], vec[1], vec[0], vec[3]);
                   }
                }
-
 
             /* fill the blanks after */
             if(x_start < pane->sizes[x_idx]){
@@ -269,12 +264,12 @@ int get_minc_image(Pane_info pane, View_info view)
          }
       }
 
-   else{
+   else {
       if(pane->v[z_idx] < 0 || pane->v[z_idx] >= pane->sizes[z_idx]){
          ptr = memset(ptr, 0, view->texmap_space);
          return TRUE;
          }
-      else{
+      else {
          vec[z_idx] = (int)pane->v[z_idx];
 
          for(vec[y_idx] = 0; vec[y_idx] < pane->sizes[y_idx]; vec[y_idx]++){
@@ -284,7 +279,7 @@ int get_minc_image(Pane_info pane, View_info view)
                                      vec[2], vec[1], vec[0]);
                   }
                }
-            else{
+            else {
                for(vec[x_idx] = 0; vec[x_idx] < pane->sizes[x_idx]; vec[x_idx]++){
                   GET_VOXEL_4D_TYPED(*ptr++, (unsigned char), vol,
                                      vec[2], vec[1], vec[0], vec[3]);
@@ -302,12 +297,12 @@ int get_voxel_value(Pane_info pane)
 
    /* check we aren't outside */
    if(pane->v[0] < 0 || pane->v[1] < 0 || pane->v[2] < 0 ||
-       pane->v[0] >= pane->sizes[0] ||
-       pane->v[1] >= pane->sizes[1] || pane->v[2] >= pane->sizes[2]){
+      pane->v[0] >= pane->sizes[0] ||
+      pane->v[1] >= pane->sizes[1] || pane->v[2] >= pane->sizes[2]){
       pane->voxel_value = 0.0;
       }
 
-   else{
+   else {
       switch (pane->value_type){
       default:
       case VALUE_REAL:
@@ -315,7 +310,7 @@ int get_voxel_value(Pane_info pane)
             GET_VALUE_3D_TYPED(pane->voxel_value, (double), pane->volume,
                                (int)pane->v[2], (int)pane->v[1], (int)pane->v[0]);
             }
-         else{
+         else {
             GET_VALUE_4D_TYPED(pane->voxel_value, (double), pane->volume,
                                (int)pane->v[2],
                                (int)pane->v[1], (int)pane->v[0], (int)pane->v[3]);
@@ -327,7 +322,7 @@ int get_voxel_value(Pane_info pane)
             GET_VOXEL_3D_TYPED(pane->voxel_value, (double), pane->volume,
                                (int)pane->v[2], (int)pane->v[1], (int)pane->v[0]);
             }
-         else{
+         else {
             GET_VOXEL_4D_TYPED(pane->voxel_value, (double), pane->volume,
                                (int)pane->v[2],
                                (int)pane->v[1], (int)pane->v[0], (int)pane->v[3]);
@@ -335,14 +330,6 @@ int get_voxel_value(Pane_info pane)
          break;
          }
       }
-
-   return TRUE;
-   }
-
-int get_roi_value(Pane_info pane)
-{
-
-   /* hrm.... */
 
    return TRUE;
    }

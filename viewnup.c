@@ -50,30 +50,44 @@ static int link_trans = FALSE;
 static int link_rots = FALSE;
 static int link_tilts = FALSE;
 
-/* popt (gnome) argument table */
+/* popt (gtk) argument table */
 struct poptOption options[] = {
-   {"verbose", 'v', POPT_ARG_NONE, &verbose, 0, "Print out extra information", NULL},
-   {"draw_fast", 'f', POPT_ARG_NONE, &draw_fast, 0, "Draw fast (dodgy hacks Inc.)", NULL},
+   {"verbose", 'v', POPT_ARG_NONE, &verbose, 0,
+    "Print out extra information", NULL},
+   {"draw_fast", 'f', POPT_ARG_NONE, &draw_fast, 0,
+    "Draw fast (dodgy hacks Inc.)", NULL},
 
-   {"synch", 'X', POPT_ARG_NONE, &synch_panes, 0, "Synch Panes", NULL},
-   {"vector", 'V', POPT_ARG_NONE, &vector, 0, "Show 4D files as vectors", NULL},
-   {"perspective", 'P', POPT_ARG_NONE, &perspective, 0, "Use Perspective views", NULL},
-   {"nobound_box", 'B', POPT_ARG_NONE, &nobound_box, 0, "Don't show bounding box", NULL},
-   {"slice_box", 'S', POPT_ARG_NONE, &slice_box, 0, "Show slice box", NULL},
+   {"synch", 'X', POPT_ARG_NONE, &synch_panes, 0,
+    "Synch Panes", NULL},
+   {"vector", 'V', POPT_ARG_NONE, &vector, 0,
+    "Show 4D files as vectors", NULL},
+   {"perspective", 'P', POPT_ARG_NONE, &perspective, 0,
+    "Use Perspective views", NULL},
+   {"nobound_box", 'B', POPT_ARG_NONE, &nobound_box, 0,
+    "Don't show bounding box", NULL},
+   {"slice_box", 'S', POPT_ARG_NONE, &slice_box, 0,
+    "Show slice box", NULL},
 
-   {"transverse", 't', POPT_ARG_NONE, &transverse, 0, "Transverse view only", NULL},
-   {"sagittal", 's', POPT_ARG_NONE, &sagittal, 0, "Sagittal view only", NULL},
-   {"coronal", 'c', POPT_ARG_NONE, &coronal, 0, "Coronal view only", NULL},
+   {"transverse", 't', POPT_ARG_NONE, &transverse, 0,
+    "Transverse view only", NULL},
+   {"sagittal", 's', POPT_ARG_NONE, &sagittal, 0,
+    "Sagittal view only", NULL},
+   {"coronal", 'c', POPT_ARG_NONE, &coronal, 0,
+    "Coronal view only", NULL},
 
-   {"link_scale", '\0', POPT_ARG_NONE, &link_scales, 0, "Link scales between views",
+   {"link_scale", '\0', POPT_ARG_NONE, &link_scales, 0,
+    "Link scales between views",
     NULL},
-   {"link_trans", '\0', POPT_ARG_NONE, &link_trans, 0, "Link translations between views",
+   {"link_trans", '\0', POPT_ARG_NONE, &link_trans, 0,
+    "Link translations between views",
     NULL},
-   {"link_rots", '\0', POPT_ARG_NONE, &link_rots, 0, "Link rotations between views",
+   {"link_rots", '\0', POPT_ARG_NONE, &link_rots, 0,
+    "Link rotations between views",
     NULL},
-   {"link_tilts", '\0', POPT_ARG_NONE, &link_tilts, 0, "Link tilts between views", NULL},
+   {"link_tilts", '\0', POPT_ARG_NONE, &link_tilts, 0,
+    "Link tilts between views", NULL},
    {NULL, '\0', 0, NULL, 0, NULL, NULL}
-};
+   };
 
 /* toplevel struct ptr function */
 Main_info *init_main_info(int init_synch_idx, int transverse, int sagittal, int coronal)
@@ -177,7 +191,7 @@ Synch_info *get_next_synch(Main_info * ptr, Synch_info * synch)
    if(synch_idx < (ptr->n_synchs - 1)){
       return ptr->synchs[synch_idx + 1];
       }
-   else{
+   else {
       return ptr->synchs[0];
       }
    }
@@ -328,15 +342,6 @@ Pane_info init_pane_info(Synch_info * synch)
    pane->views = g_ptr_array_new();
    pane->c_view = NULL;
 
-   /* set the initial voxel values and ROI */
-   pane->value_type = VALUE_REAL;
-   pane->roi_type = ROI_NONE;
-   pane->roi_x = 10.0;
-   pane->roi_y = 10.0;
-   pane->roi_z = 10.0;
-   pane->roi_fwhm = 1.0;
-   pane->roi_gauss = FALSE;
-
    pane->n_dims = 0;
    /* set the default position and sizes */
    for(c = 0; c < MAX_VNUP_DIMS; c++){
@@ -406,7 +411,7 @@ void print_pane_info(Pane_info pane)
    g_print(_("  Pane rrange %g-%g\n"), pane->pane_min_value, pane->pane_max_value);
    g_print(_("  merge/synch %d/%d\n"), pane->merge, pane->synch->idx);
    g_print(_("  draw/fast   %d/%d\n"), pane->draw, pane->draw_fast);
-   g_print(_("  interp      %d\n"),    pane->linear_interp);
+   g_print(_("  interp      %d\n"), pane->linear_interp);
    g_print(_("  vect/perp   %d/%d\n"), pane->vector, pane->perspective);
    g_print(_("  bbox/sbox   %d/%d\n"), pane->bounding_box, pane->slice_box);
    g_print(_("  cross/size  %d/%g\n"), pane->crosshair, pane->crosshair_size);
@@ -418,9 +423,6 @@ void print_pane_info(Pane_info pane)
    g_print(_("  w-xyzt      %5.2f|%5.2f|%5.2f|%5.2f\n"), pane->w[0], pane->w[1],
            pane->w[2], pane->w[3]);
    g_print(_("  Cmap        %s\n"), pane->cmap_ptr->name);
-   g_print(_("  ROI/Gauss   %d/%d\n"), pane->roi_type, pane->roi_gauss);
-   g_print(_("  ROI fwhm    %g\n"), pane->roi_fwhm);
-   g_print(_("  ROI xyz     %g|%g|%g\n"), pane->roi_x, pane->roi_y, pane->roi_z);
 
    for(c = 0; c < pane->views->len; c++){
       view = g_ptr_array_index(pane->views, c);
@@ -605,7 +607,7 @@ int main(int argc, char *argv[])
    if(synch_panes){
       init_synch_idx = 1;
       }
-   else{
+   else {
       init_synch_idx = 0;
       }
 
@@ -644,7 +646,7 @@ int main(int argc, char *argv[])
       add_pane(ptr, FALSE, NULL, FALSE);
       add_merge_pane = TRUE;
       }
-   else{
+   else {
       for(c = 0; c < n_infiles; c++){
          pane = add_pane(ptr, FALSE, NULL, FALSE);
          }

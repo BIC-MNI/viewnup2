@@ -137,7 +137,7 @@ void vects_to_quat(double v1[3], double v2[3], double q[4])
       vcopy(axis, v1);
       phi = 0.0;
       }
-   else{
+   else {
       /* find the axis with a cross product          */
       vcross(axis, v2, v1);
 
@@ -147,7 +147,7 @@ void vects_to_quat(double v1[3], double v2[3], double q[4])
       if(denom == 0){
          phi = 0.0;
          }
-      else{
+      else {
          phi = acos(vdot(v1, v2) / denom);
          }
       }
@@ -172,13 +172,13 @@ void quat_to_axis(double vec[3], double *phi, double quat[4])
 
    scale = quat[0] * quat[0] + quat[1] * quat[1] + quat[2] * quat[2];
 
-   if(scale == 0){                   /* no rotation, we're stuffed */
+   if(scale == 0){                    /* no rotation, we're stuffed */
       vec[0] = 0;
       vec[1] = 0;
       vec[2] = 1;
       *phi = 0;
       }
-   else{
+   else {
       vcopy(vec, quat);
       vscale(vec, 1.0 / scale);
       vnormal(vec);
@@ -194,10 +194,10 @@ static double tb_project_to_sphere(double r, double x, double y)
    double   d, t, z;
 
    d = sqrt(x * x + y * y);
-   if(d < r * 0.70710678118654752440){ /* Inside sphere */
+   if(d < r * 0.70710678118654752440){   /* Inside sphere */
       z = sqrt(r * r - d * d);
       }
-   else{                              /* On hyperbola */
+   else {                              /* On hyperbola */
       t = r / 1.41421356237309504880;
       z = t * t / d;
       }

@@ -51,7 +51,7 @@ void push_statusbar(Main_info * ptr, char *buf, int highlight)
       g_print(_("push_statusbar passed a NULL pointer!"));
       return;
       }
-   else{
+   else {
       gtk_statusbar_pop(GTK_STATUSBAR(ptr->statusbar), 1);
       gtk_statusbar_push(GTK_STATUSBAR(ptr->statusbar), 1, buf);
       }
@@ -59,7 +59,7 @@ void push_statusbar(Main_info * ptr, char *buf, int highlight)
    if(highlight){
       gtk_widget_set_style(GTK_WIDGET(ptr->statusbar), ptr->pane_highlight_style);
       }
-   else{
+   else {
       gtk_widget_set_style(GTK_WIDGET(ptr->statusbar), NULL);
       }
    }
@@ -79,7 +79,6 @@ void make_pane_active(Pane_info pane)
 //         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->pane_label), NULL);
 //         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->eventbox_label), NULL);
 //         }
-
 
       /* change coordinate adjustments and values */
       gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->wx_spinbutton),
@@ -108,7 +107,6 @@ void make_pane_active(Pane_info pane)
       gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_wy_adj));
       gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_wz_adj));
       gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_wt_adj));
-
 
       /* Views frame */
       g_signal_handlers_block_by_func(G_OBJECT(pi->linear_interp_checkbutton),
@@ -162,12 +160,11 @@ void make_pane_active(Pane_info pane)
       gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_link_button), ptr);
       gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->crosshair_spinbutton), ptr);
 
-
       /* make the panes current view active */
       if(pane->c_view != NULL){
          make_view_active(pane, pane->c_view);
          }
-      else{
+      else {
          make_view_active(pane, g_ptr_array_index(pane->views, 0));
          }
 
@@ -175,7 +172,7 @@ void make_pane_active(Pane_info pane)
       if(pane->merge){
          gtk_widget_set_sensitive(GTK_WIDGET(pi->vector_checkbutton), FALSE);
          }
-      else{
+      else {
          gtk_widget_set_sensitive(GTK_WIDGET(pi->vector_checkbutton), TRUE);
          }
 
@@ -184,44 +181,15 @@ void make_pane_active(Pane_info pane)
          gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->merge_frame));
          gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
          gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->vector_frame));
-         gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->roi_frame));
          }
-      else{
+      else {
          gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->merge_frame));
-         gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->roi_frame));
-
-         /* ROI frame */
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_none_radiobutton), ptr);
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_cube_radiobutton), ptr);
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_sphere_radiobutton), ptr);
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_gauss_checkbutton), ptr);
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_fwhm_spinbutton), ptr);
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_x_spinbutton), ptr);
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_y_spinbutton), ptr);
-         gtk_signal_handler_block_by_data(GTK_OBJECT(pi->roi_z_spinbutton), ptr);
-
-         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->roi_x_spinbutton), pane->roi_x);
-         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->roi_y_spinbutton), pane->roi_y);
-         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->roi_z_spinbutton), pane->roi_z);
-         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->roi_fwhm_spinbutton),
-                                   pane->roi_fwhm);
-         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->roi_gauss_checkbutton),
-                                      pane->roi_gauss);
-
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_none_radiobutton), ptr);
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_cube_radiobutton), ptr);
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_sphere_radiobutton), ptr);
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_gauss_checkbutton), ptr);
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_fwhm_spinbutton), ptr);
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_x_spinbutton), ptr);
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_y_spinbutton), ptr);
-         gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->roi_z_spinbutton), ptr);
 
          if(pane->vector){
             gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->vector_frame));
             gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
             }
-         else{
+         else {
             gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
             gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->vector_frame));
 
@@ -504,7 +472,7 @@ void show_hide_coord_spins(Pane_info pane)
       gtk_widget_hide(pane->coord_wz);
       gtk_widget_hide(pane->coord_wt);
       }
-   else{
+   else {
       gtk_widget_show(pane->coord_wx);
       gtk_widget_show(pane->coord_wy);
       gtk_widget_show(pane->coord_wz);
@@ -539,12 +507,11 @@ int init_coord_ranges(Pane_info pane)
    vt_adj->lower = 0;
    vt_adj->upper = pane->sizes[3] - 1;
 
-
    if(pane->starts[0] < pane->stops[0]){
       wx_adj->lower = pane->starts[0];
       wx_adj->upper = pane->stops[0];
       }
-   else{
+   else {
       wx_adj->upper = pane->starts[0];
       wx_adj->lower = pane->stops[0];
       }
@@ -553,7 +520,7 @@ int init_coord_ranges(Pane_info pane)
       wy_adj->lower = pane->starts[1];
       wy_adj->upper = pane->stops[1];
       }
-   else{
+   else {
       wy_adj->upper = pane->starts[1];
       wy_adj->lower = pane->stops[1];
       }
@@ -562,7 +529,7 @@ int init_coord_ranges(Pane_info pane)
       wz_adj->lower = pane->starts[2];
       wz_adj->upper = pane->stops[2];
       }
-   else{
+   else {
       wz_adj->upper = pane->starts[2];
       wz_adj->lower = pane->stops[2];
       }
@@ -571,7 +538,7 @@ int init_coord_ranges(Pane_info pane)
       wt_adj->lower = pane->starts[3];
       wt_adj->upper = pane->stops[3];
       }
-   else{
+   else {
       wt_adj->upper = pane->starts[3];
       wt_adj->lower = pane->stops[3];
       }
@@ -598,7 +565,7 @@ void update_voxel_value(Pane_info pane)
               pane->cmap_g[(int)pane->voxel_value],
               pane->cmap_b[(int)pane->voxel_value], pane->cmap_a[(int)pane->voxel_value]);
       }
-   else{
+   else {
       sprintf(num_string, "%g", pane->voxel_value);
       }
 
@@ -618,7 +585,7 @@ void update_synch_button(Main_info * ptr, Pane_info pane)
       update_coord_values(pane);
       }
 
-   else{
+   else {
       sprintf(synch_text, "S:%d", pane->synch->idx);
 
       /* point the panes coordinate's at the synch adjustments */
@@ -640,7 +607,7 @@ void update_synch_button(Main_info * ptr, Pane_info pane)
          gtk_spin_button_set_value(GTK_SPIN_BUTTON(synch->synch_t), pane->w[3]);
          synch->virgin = FALSE;
          }
-      else{
+      else {
          /* assign the sync's co-ordinates to the pane */
          pane->w[0] = (double)
             gtk_spin_button_get_value(GTK_SPIN_BUTTON(synch->synch_x));
@@ -687,7 +654,6 @@ void update_merge_combos(Main_info * ptr)
          gtk_entry_set_text(GTK_ENTRY(ptr->pane_dialog->merge_combo_entry[c]), prev);
          }
 
-
       /* unblock the combo callback */
       gtk_signal_handler_unblock_by_data(GTK_OBJECT
                                          (ptr->pane_dialog->merge_combo_entry[c]),
@@ -717,7 +683,7 @@ Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge)
       ptr->last_merge_id++;
       g_string_sprintf(pane->file_basename, "%s %02d", MERGE_STR, ptr->last_merge_id);
       }
-   else{
+   else {
       g_string_sprintf(pane->file_basename, NO_FILE_STR);
 
       /* cmap range adjusters */
@@ -765,7 +731,7 @@ Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge)
    if(clone){
       g_print("can't add a clone pane yet\n");
       }
-   else{
+   else {
       /* setup initial views */
       if(ptr->init_transverse){
          g_ptr_array_add(pane->views, init_view_info(TRANSVERSE));
@@ -790,7 +756,6 @@ Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge)
       }
    return pane;
    }
-
 
 /* menu callbacks */
 void open_scheme_activate(GtkMenuItem * menuitem, gpointer user_data)
@@ -864,7 +829,6 @@ void pane_info_activate(GtkMenuItem * menuitem, gpointer user_data)
    gdk_window_raise(ptr->pane_info_dialog->window);
    }
 
-
 void about_activate(GtkMenuItem * menuitem, gpointer user_data)
 {
    GtkWidget *about_dialog;
@@ -889,8 +853,8 @@ void left_button_clicked(GtkButton * button, gpointer user_data)
 
    if(curr_pane->position != 0){
       /* get the id of the "prev" pane */
-      while (((Pane_info) g_ptr_array_index(ptr->panes, c))->position + 1 !=
-             curr_pane->position){
+      while(((Pane_info) g_ptr_array_index(ptr->panes, c))->position + 1 !=
+            curr_pane->position){
          c++;
          }
       prev_pane = g_ptr_array_index(ptr->panes, c);
@@ -914,8 +878,8 @@ void right_button_clicked(GtkButton * button, gpointer user_data)
 
    if(curr_pane->position != (ptr->panes->len - 1)){
       /* get the id of the "next" pane */
-      while (((Pane_info) g_ptr_array_index(ptr->panes, c))->position - 1 !=
-             curr_pane->position){
+      while(((Pane_info) g_ptr_array_index(ptr->panes, c))->position - 1 !=
+            curr_pane->position){
          c++;
          }
       next_pane = g_ptr_array_index(ptr->panes, c);
@@ -935,12 +899,11 @@ void sync_button_clicked(GtkButton * button, gpointer user_data)
    Pane_info pane = (Pane_info) user_data;
    Main_info *ptr = get_main_ptr();
 
-
    pane->synch = get_next_synch(ptr, pane->synch);
    update_synch_button(ptr, pane);
    }
 
-/* voxel and ROI values */
+/* voxel values */
 void vox_value_button_clicked(GtkButton * button, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
@@ -973,17 +936,9 @@ void vox_value_button_clicked(GtkButton * button, gpointer user_data)
    if(pane->value_type == VALUE_NONE){
       gtk_entry_set_text(GTK_ENTRY(pane->vox_value), " --- ");
       }
-   else{
+   else {
       update_voxel_value(pane);
       }
-   }
-
-void roi_value_button_clicked(GtkButton * button, gpointer user_data)
-{
-   Pane_info pane = (Pane_info) user_data;
-
-
-   g_print("roi_val but! - %s\n", pane->file_name->str);
    }
 
 /* Coordinates stuff */
@@ -997,7 +952,7 @@ void coord_button_clicked(GtkButton * button, gpointer user_data)
 
       pane->use_vox_coords = FALSE;
       }
-   else{
+   else {
       gtk_button_set_label(GTK_BUTTON(button), "V:");
       pane->use_vox_coords = TRUE;
       }
@@ -1006,7 +961,7 @@ void coord_button_clicked(GtkButton * button, gpointer user_data)
    show_hide_coord_spins(pane);
    }
 
-void vx_coord_changed(GtkEditable *editable, gpointer user_data)
+void vx_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1015,7 +970,7 @@ void vx_coord_changed(GtkEditable *editable, gpointer user_data)
    gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wx), pane->w[0]);
    }
 
-void vy_coord_changed(GtkEditable *editable, gpointer user_data)
+void vy_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1024,7 +979,7 @@ void vy_coord_changed(GtkEditable *editable, gpointer user_data)
    gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wy), pane->w[1]);
    }
 
-void vz_coord_changed(GtkEditable *editable, gpointer user_data)
+void vz_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1033,7 +988,7 @@ void vz_coord_changed(GtkEditable *editable, gpointer user_data)
    gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wz), pane->w[2]);
    }
 
-void vt_coord_changed(GtkEditable *editable, gpointer user_data)
+void vt_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1042,7 +997,7 @@ void vt_coord_changed(GtkEditable *editable, gpointer user_data)
    gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wt), pane->w[3]);
    }
 
-void wx_coord_changed(GtkEditable *editable, gpointer user_data)
+void wx_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    int      c;
    Pane_info pane = (Pane_info) user_data;
@@ -1069,7 +1024,7 @@ void wx_coord_changed(GtkEditable *editable, gpointer user_data)
       }
    }
 
-void wy_coord_changed(GtkEditable *editable, gpointer user_data)
+void wy_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    int      c;
    Pane_info pane = (Pane_info) user_data;
@@ -1096,7 +1051,7 @@ void wy_coord_changed(GtkEditable *editable, gpointer user_data)
       }
    }
 
-void wz_coord_changed(GtkEditable *editable, gpointer user_data)
+void wz_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    int      c;
    Pane_info pane = (Pane_info) user_data;
@@ -1123,7 +1078,7 @@ void wz_coord_changed(GtkEditable *editable, gpointer user_data)
       }
    }
 
-void wt_coord_changed(GtkEditable *editable, gpointer user_data)
+void wt_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    int      c;
    Pane_info pane = (Pane_info) user_data;
@@ -1151,12 +1106,12 @@ void wt_coord_changed(GtkEditable *editable, gpointer user_data)
 
 /* open file stuff          */
 /* pane open file callbacks */
-void file_open_entry_activate(GtkEntry *entry, gpointer user_data)
+void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
 {
    Main_info *ptr = get_main_ptr();
    Pane_info pane = (Pane_info) user_data;
    View_info view;
-   gchar *text;
+   gchar   *text;
    gchar    buf[128];
    int      c;
 
@@ -1225,10 +1180,10 @@ void file_open_entry_activate(GtkEntry *entry, gpointer user_data)
 
    /* continue to load it updating as we go if we need to.. */
    if(pane->perc_input != 1.0){
-      while (continue_open_minc_file_to_pane(pane)){
+      while(continue_open_minc_file_to_pane(pane)){
 
          /* let GTK+ do a few things */
-         while (g_main_iteration(FALSE)) ;
+         while(g_main_iteration(FALSE));
 
          for(c = 0; c < pane->views->len; c++){
             view = g_ptr_array_index(pane->views, c);
@@ -1253,14 +1208,13 @@ void file_open_entry_activate(GtkEntry *entry, gpointer user_data)
 
    /* update the merge combos */
    update_merge_combos(ptr);
-   
+
    free(text);
    }
 
-
 /* cmap callbacks    */
 /* range spinbuttons */
-void range_min_val_changed(GtkEditable *editable, gpointer user_data)
+void range_min_val_changed(GtkEditable * editable, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
    int      c;
@@ -1278,7 +1232,7 @@ void range_min_val_changed(GtkEditable *editable, gpointer user_data)
       }
    }
 
-void range_max_val_changed(GtkEditable *editable, gpointer user_data)
+void range_max_val_changed(GtkEditable * editable, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
    int      c;
@@ -1329,7 +1283,7 @@ void cmap_bluered_radio_clicked(GtkButton * button, gpointer user_data)
    }
 
 /* colour map combo */
-void cmap_combo_entry_changed(GtkEditable *editable, gpointer user_data)
+void cmap_combo_entry_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = get_main_ptr();
    Pane_info pane = (Pane_info) user_data;
@@ -1353,13 +1307,13 @@ void cmap_combo_entry_changed(GtkEditable *editable, gpointer user_data)
    }
 
 /* pane focus and resizing callbacks */
-void hbox_pane_set_focus_child(GtkContainer * container, GtkWidget *widget,
+void hbox_pane_set_focus_child(GtkContainer * container, GtkWidget * widget,
                                gpointer user_data)
 {
    make_pane_active((Pane_info) user_data);
    }
 
-void vsep_eventbox_realize(GtkWidget *widget, gpointer user_data)
+void vsep_eventbox_realize(GtkWidget * widget, gpointer user_data)
 {
    GdkCursor *curs = gdk_cursor_new(GDK_LEFT_PTR);
 
@@ -1369,7 +1323,7 @@ void vsep_eventbox_realize(GtkWidget *widget, gpointer user_data)
    }
 
 gboolean
-vsep_eventbox_button_press_event(GtkWidget *widget, GdkEventButton * event,
+vsep_eventbox_button_press_event(GtkWidget * widget, GdkEventButton * event,
                                  gpointer user_data)
 {
    gdk_pointer_grab(GTK_WIDGET(widget)->window, FALSE,
@@ -1380,7 +1334,7 @@ vsep_eventbox_button_press_event(GtkWidget *widget, GdkEventButton * event,
    }
 
 gboolean
-vsep_eventbox_button_release_event(GtkWidget *widget, GdkEventButton * event,
+vsep_eventbox_button_release_event(GtkWidget * widget, GdkEventButton * event,
                                    gpointer user_data)
 {
    gdk_pointer_ungrab(event->time);
@@ -1388,7 +1342,7 @@ vsep_eventbox_button_release_event(GtkWidget *widget, GdkEventButton * event,
    }
 
 gboolean
-vsep_eventbox_motion_notify_event(GtkWidget *widget, GdkEventMotion * event,
+vsep_eventbox_motion_notify_event(GtkWidget * widget, GdkEventMotion * event,
                                   gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
@@ -1398,7 +1352,7 @@ vsep_eventbox_motion_notify_event(GtkWidget *widget, GdkEventMotion * event,
    if(event->is_hint){
       gdk_window_get_pointer(event->window, &x, &y, &state);
       }
-   else{
+   else {
       x = event->x;
       y = event->y;
       state = event->state;
@@ -1411,8 +1365,6 @@ vsep_eventbox_motion_notify_event(GtkWidget *widget, GdkEventMotion * event,
 
    return TRUE;
    }
-
-
 
 /* DIALOG CALLBACKS */
 /* cmap filesel callback */
@@ -1435,7 +1387,7 @@ void cmap_file_ok_button_clicked(GtkButton * button, gpointer user_data)
       push_statusbar(ptr, buf, 1);
       }
 
-   else{
+   else {
       ptr->c_pane->cmap_ptr = lut;
 
       // here we should just update the cmap combo 
@@ -1462,9 +1414,8 @@ void scheme_ok_button_clicked(GtkButton * button, gpointer user_data)
    gtk_widget_destroy(GTK_WIDGET(user_data));
    }
 
-
 /* Synch dialog       */
-void synch_coord_changed(GtkEditable *editable, gpointer user_data)
+void synch_coord_changed(GtkEditable * editable, gpointer user_data)
 {
    Synch_info *synch = (Synch_info *) user_data;
 
@@ -1517,16 +1468,15 @@ void synch_add_button_clicked(GtkButton * button, gpointer user_data)
    gtk_container_add(GTK_CONTAINER(ptr->synch_dialog), GTK_WIDGET(ptr->synch_table));
    }
 
-gboolean synch_dialog_delete_event(GtkWidget *widget, GdkEvent * event,
+gboolean synch_dialog_delete_event(GtkWidget * widget, GdkEvent * event,
                                    gpointer user_data)
 {
    gtk_widget_hide(GTK_WIDGET(widget));
    return TRUE;
    }
 
-
 /* Pane info dialog */
-gboolean pane_info_dialog_delete_event(GtkWidget *widget, GdkEvent * event,
+gboolean pane_info_dialog_delete_event(GtkWidget * widget, GdkEvent * event,
                                        gpointer user_data)
 {
    gtk_widget_hide(GTK_WIDGET(widget));
@@ -1558,7 +1508,6 @@ void pi_pane_clone_button_clicked(GtkButton * button, gpointer user_data)
 void pi_pane_close_button_clicked(GtkButton * button, gpointer user_data)
 {
 //   Main_info *ptr = (Main_info *) user_data;
-
 
    }
 
@@ -1632,7 +1581,7 @@ void pi_vector_checkbutton_toggled(GtkToggleButton * togglebutton, gpointer user
       gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->vector_frame));
       gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
       }
-   else{
+   else {
       gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
       gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->vector_frame));
       }
@@ -1657,7 +1606,7 @@ void pi_bbox_checkbutton_toggled(GtkToggleButton * togglebutton, gpointer user_d
    redraw_pane_views(ptr->c_pane);
    }
 
-void pi_crosshair_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_crosshair_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
 
@@ -1665,7 +1614,7 @@ void pi_crosshair_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_views(ptr->c_pane);
    }
 
-void pi_view_type_combo_entry_changed(GtkEditable *editable, gpointer user_data)
+void pi_view_type_combo_entry_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1675,13 +1624,13 @@ void pi_view_type_combo_entry_changed(GtkEditable *editable, gpointer user_data)
 
    if(strcmp(text, "transverse") == 0){
       view->type = TRANSVERSE;
-   };
+      };
    if(strcmp(text, "sagittal") == 0){
       view->type = SAGITTAL;
-   };
+      };
    if(strcmp(text, "coronal") == 0){
       view->type = CORONAL;
-   };
+      };
 
    view->reload_texmap = TRUE;
    view->reload_image = TRUE;
@@ -1733,7 +1682,7 @@ void pi_view_close_button_clicked(GtkButton * button, gpointer user_data)
       pane->c_view = NULL;
       make_view_active(pane, g_ptr_array_index(pane->views, 0));
       }
-   else{
+   else {
       g_warning(_("Glark! I canna remove the view capt'n! (This is bad)\n"));
       }
    }
@@ -1787,7 +1736,6 @@ void pi_tilt_button_clicked(GtkButton * button, gpointer user_data)
    update_pi_tilts(ptr, view->tilt_w[0], view->tilt_w[1], view->tilt_w[2]);
    }
 
-
 /* link buttons */
 void pi_scale_link_button_clicked(GtkButton * button, gpointer user_data)
 {
@@ -1813,9 +1761,8 @@ void pi_tilt_link_button_clicked(GtkButton * button, gpointer user_data)
       gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button));
    }
 
-
 /* scale, trans, rot and tilt spins */
-void pi_scale_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_scale_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1825,7 +1772,7 @@ void pi_scale_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_trans_x_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_trans_x_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1835,7 +1782,7 @@ void pi_trans_x_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_trans_y_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_trans_y_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1845,7 +1792,7 @@ void pi_trans_y_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_trans_z_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_trans_z_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1855,7 +1802,7 @@ void pi_trans_z_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_rot_x_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_rot_x_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1866,7 +1813,7 @@ void pi_rot_x_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_rot_y_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_rot_y_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1877,7 +1824,7 @@ void pi_rot_y_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_rot_z_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_rot_z_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1888,7 +1835,7 @@ void pi_rot_z_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_rot_phi_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_rot_phi_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1899,7 +1846,7 @@ void pi_rot_phi_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_view(view);
    }
 
-void pi_tilt_x_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_tilt_x_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1908,7 +1855,7 @@ void pi_tilt_x_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    update_slice_tilt(ptr->c_pane, view);
    }
 
-void pi_tilt_y_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_tilt_y_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1917,7 +1864,7 @@ void pi_tilt_y_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    update_slice_tilt(ptr->c_pane, view);
    }
 
-void pi_tilt_z_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_tilt_z_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
@@ -1925,7 +1872,6 @@ void pi_tilt_z_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    view->tilt_w[2] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
    update_slice_tilt(ptr->c_pane, view);
    }
-
 
 /* lock buttons */
 void pi_scale_lock_button_clicked(GtkButton * button, gpointer user_data)
@@ -1994,76 +1940,6 @@ void pi_tilt_lock_z_button_clicked(GtkButton * button, gpointer user_data)
       gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button));
    }
 
-
-/* ROI */
-void pi_roi_none_radiobutton_clicked(GtkButton * button, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button))){
-      ptr->c_pane->roi_type = ROI_NONE;
-      redraw_pane_views(ptr->c_pane);
-      }
-   }
-
-void pi_roi_cube_radiobutton_clicked(GtkButton * button, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button))){
-      ptr->c_pane->roi_type = ROI_CUBE;
-      redraw_pane_views(ptr->c_pane);
-      }
-   }
-
-void pi_roi_sphere_radiobutton_clicked(GtkButton * button, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button))){
-      ptr->c_pane->roi_type = ROI_SPHERE;
-      redraw_pane_views(ptr->c_pane);
-      }
-   }
-
-void pi_roi_x_spinbutton_changed(GtkEditable *editable, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   ptr->c_pane->roi_x = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
-   redraw_pane_views(ptr->c_pane);
-   }
-
-void pi_roi_y_spinbutton_changed(GtkEditable *editable, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   ptr->c_pane->roi_y = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
-   redraw_pane_views(ptr->c_pane);
-   }
-
-void pi_roi_z_spinbutton_changed(GtkEditable *editable, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   ptr->c_pane->roi_z = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
-   redraw_pane_views(ptr->c_pane);
-   }
-
-void pi_roi_fwhm_spinbutton_changed(GtkEditable *editable, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   ptr->c_pane->roi_fwhm = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
-   }
-
-void pi_roi_gauss_checkbutton_toggled(GtkToggleButton * togglebutton, gpointer user_data)
-{
-   Main_info *ptr = (Main_info *) user_data;
-
-   ptr->c_pane->roi_gauss = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton));
-   }
-
 /* cmap */
 void pi_cmap_grey_radiobutton_clicked(GtkButton * button, gpointer user_data)
 {
@@ -2093,7 +1969,7 @@ void pi_cmap_bluered_radiobutton_clicked(GtkButton * button, gpointer user_data)
    gtk_entry_set_text(GTK_ENTRY(ptr->pane_dialog->cmap_combo_entry), "bluered");
    }
 
-void pi_cmap_combo_entry_changed(GtkEditable *editable, gpointer user_data)
+void pi_cmap_combo_entry_changed(GtkEditable * editable, gpointer user_data)
 {
    gchar   *text;
    Main_info *ptr = (Main_info *) user_data;
@@ -2108,7 +1984,7 @@ void pi_cmap_reload_button_clicked(GtkButton * button, gpointer user_data)
 
    }
 
-void pi_cmap_alpha_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_cmap_alpha_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    Pane_info pane = ptr->c_pane;
@@ -2144,7 +2020,7 @@ void pi_alpha_mult_button_clicked(GtkButton * button, gpointer user_data)
                              (ptr->pane_dialog->vector_alpha_mult_spinbutton), 1.0);
    }
 
-void pi_vector_mult_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_vector_mult_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    Pane_info pane = ptr->c_pane;
@@ -2153,7 +2029,7 @@ void pi_vector_mult_spinbutton_changed(GtkEditable *editable, gpointer user_data
    redraw_pane_views(pane);
    }
 
-void pi_vector_alpha_mult_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_vector_alpha_mult_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    Pane_info pane = ptr->c_pane;
@@ -2166,7 +2042,6 @@ void pi_vector_colour_button_clicked(GtkButton * button, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    Pane_info pane = ptr->c_pane;
-
 
    pane->vect_col[0] = 0.0;
    pane->vect_col[1] = 0.5;
@@ -2234,7 +2109,7 @@ void pi_vector_points_checkbutton_toggled(GtkToggleButton * togglebutton,
    redraw_pane_views(pane);
    }
 
-void pi_vector_max_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_vector_max_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    Pane_info pane = ptr->c_pane;
@@ -2243,7 +2118,7 @@ void pi_vector_max_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    redraw_pane_views(pane);
    }
 
-void pi_vector_min_spinbutton_changed(GtkEditable *editable, gpointer user_data)
+void pi_vector_min_spinbutton_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
    Pane_info pane = ptr->c_pane;
@@ -2251,7 +2126,6 @@ void pi_vector_min_spinbutton_changed(GtkEditable *editable, gpointer user_data)
    pane->vect_floor = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
    redraw_pane_views(pane);
    }
-
 
 void pi_vector_rgb_togglebutton_toggled(GtkToggleButton * togglebutton,
                                         gpointer user_data)
@@ -2264,7 +2138,7 @@ void pi_vector_rgb_togglebutton_toggled(GtkToggleButton * togglebutton,
    }
 
 /* merge frame callbacks */
-void pi_merge_combo_entry_changed(GtkEditable *editable, gpointer user_data)
+void pi_merge_combo_entry_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = get_main_ptr();
    gint     merge_number = GPOINTER_TO_INT(user_data);
@@ -2276,10 +2150,10 @@ void pi_merge_combo_entry_changed(GtkEditable *editable, gpointer user_data)
    if(strcmp(text, NO_FILE_STR) == 0){
       ptr->c_pane->merge_panes[merge_number] = NULL;
       }
-   else{
+   else {
       c = 0;
       pane = g_ptr_array_index(ptr->panes, c);
-      while ((strcmp(text, pane->file_basename->str) != 0) && (c < ptr->panes->len)){
+      while((strcmp(text, pane->file_basename->str) != 0) && (c < ptr->panes->len)){
 
          pane = g_ptr_array_index(ptr->panes, c);
          c++;

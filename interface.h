@@ -8,22 +8,22 @@
 
 #include "globals.h"
 
-GtkWidget* create_viewnup_main(Main_info *ptr);
+GtkWidget *create_viewnup_main(Main_info * ptr);
 
-GtkWidget* create_synch_table(Main_info *ptr);
-GtkWidget* create_synch_dialog(Main_info *ptr);
+GtkWidget *create_synch_table(Main_info * ptr);
+GtkWidget *create_synch_dialog(Main_info * ptr);
 
-GtkWidget* create_pane_info_dialog(Main_info *ptr);
+GtkWidget *create_pane_info_dialog(Main_info * ptr);
 
-GtkWidget* create_cmap_fileselection(void);
-GtkWidget* create_scheme_fileselection(void);
+GtkWidget *create_cmap_fileselection(void);
+GtkWidget *create_scheme_fileselection(void);
 
-GtkWidget* create_viewnup_about (void);
+GtkWidget *create_viewnup_about(void);
 
-void create_view_widgets(Main_info *ptr, Pane_info pane, View_info view);
-void create_pane_widgets(Main_info *ptr, Pane_info pane);
+void     create_view_widgets(Main_info * ptr, Pane_info pane, View_info view);
+void     create_pane_widgets(Main_info * ptr, Pane_info pane);
 
-void delete_view_widgets(Pane_info pane, View_info view);
-void delete_pane_widgets(Main_info *ptr, Pane_info pane);
+void     delete_view_widgets(Pane_info pane, View_info view);
+void     delete_pane_widgets(Main_info * ptr, Pane_info pane);
 
 #endif

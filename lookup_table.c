@@ -8,7 +8,7 @@
 typedef struct {
    double   key;
    int      index;
-} Sort_Key;
+   } Sort_Key;
 
 /* Internal Function prototypes */
 double  *get_null_value(int vector_length, char *null_value_string);
@@ -17,7 +17,6 @@ int      sorting_function(const void *value1, const void *value2);
 double  *get_values_from_string(char *string, int array_size, double *array, int *nread);
 void     lookup_in_table(double index, Lookup_Table * lookup_table,
                          double output_value[]);
-
 
 /* returns a new lookup_table */
 Lookup_Table *new_lookup_table(void)
@@ -60,7 +59,7 @@ void init_lookup_tables(Main_info * ptr)
    static double grey[] = {
       0.0, 0.0, 0.0, 0.0, 0.0,
       1.0, 1.0, 1.0, 1.0, 1.0
-   };
+      };
 
    static double spectral[] = {
       0.00, 0.0000, 0.0000, 0.0000, 0.0,
@@ -84,7 +83,7 @@ void init_lookup_tables(Main_info * ptr)
       0.90, 0.8667, 0.0000, 0.0000, 1.0,
       0.95, 0.8000, 0.0000, 0.0000, 1.0,
       1.00, 0.8000, 0.8000, 0.8000, 1.0
-   };
+      };
 
    static double hotmetal[] = {
       0.00, 0.0, 0.0, 0.0, 0.0,
@@ -92,7 +91,7 @@ void init_lookup_tables(Main_info * ptr)
       0.50, 1.0, 0.5, 0.0, 0.7,
       0.75, 1.0, 1.0, 0.5, 0.9,
       1.00, 1.0, 1.0, 1.0, 1.0
-   };
+      };
 
    static double bluered[] = {
       0.000, 0.8, 0.8, 1.0, 1.00,
@@ -104,37 +103,37 @@ void init_lookup_tables(Main_info * ptr)
       0.750, 1.0, 0.4, 0.0, 0.85,
       0.825, 1.0, 0.8, 0.4, 0.95,
       1.000, 1.0, 0.8, 0.8, 1.00
-   };
+      };
 
    static double red[] = {
       0.0, 0.0, 0.0, 0.0, 0.0,
       1.0, 1.0, 0.0, 0.0, 1.0
-   };
+      };
 
    static double green[] = {
       0.0, 0.0, 0.0, 0.0, 0.0,
       1.0, 0.0, 1.0, 0.0, 1.0
-   };
+      };
 
    static double blue[] = {
       0.0, 0.0, 0.0, 0.0, 0.0,
       1.0, 0.0, 0.0, 1.0, 1.0
-   };
+      };
 
    static double cyan[] = {
       0.0, 0.0, 0.0, 0.0, 0.0,
       1.0, 0.0, 1.0, 1.0, 1.0
-   };
+      };
 
    static double magenta[] = {
       0.0, 0.0, 0.0, 0.0, 0.0,
       1.0, 1.0, 0.0, 1.0, 1.0
-   };
+      };
 
    static double yellow[] = {
       0.0, 0.0, 0.0, 0.0, 0.0,
       1.0, 1.0, 1.0, 0.0, 1.0
-   };
+      };
 
    static double hotred[] = {
       0.00, 0.0, 0.0, 0.0, 0.0,
@@ -142,7 +141,7 @@ void init_lookup_tables(Main_info * ptr)
       0.50, 1.0, 0.0, 0.5, 0.7,
       0.75, 1.0, 0.5, 1.0, 0.9,
       1.00, 1.0, 1.0, 1.0, 1.0
-   };
+      };
 
    static double hotgreen[] = {
       0.00, 0.0, 0.0, 0.0, 0.0,
@@ -150,7 +149,7 @@ void init_lookup_tables(Main_info * ptr)
       0.50, 0.0, 1.0, 0.5, 0.7,
       0.75, 0.5, 1.0, 1.0, 0.9,
       1.00, 1.0, 1.0, 1.0, 1.0
-   };
+      };
 
    static double hotblue[] = {
       0.00, 0.0, 0.0, 0.0, 0.0,
@@ -158,7 +157,7 @@ void init_lookup_tables(Main_info * ptr)
       0.50, 0.0, 0.5, 1.0, 0.7,
       0.75, 0.5, 1.0, 1.0, 0.9,
       1.00, 1.0, 1.0, 1.0, 1.0
-   };
+      };
 
    /* grey lookup table */
    ptr->lookup_tables[0] = new_lookup_table();
@@ -295,7 +294,7 @@ int load_table_to_pane(Pane_info pane)
       if(pane->cmap_ptr->vector_length > 3){
          pane->cmap_a[c] = out[3];
          }
-      else{
+      else {
          pane->cmap_a[c] = 1.0;
          }
       }
@@ -312,7 +311,7 @@ int store_table(Lookup_Table * lut, Main_info * ptr)
       g_print("Too many tables, I canna handle no more captain!\n");
       return FALSE;
       }
-   else{
+   else {
       ptr->lookup_tables[ptr->n_tables] = lut;
       ptr->n_tables++;
       return TRUE;
@@ -371,7 +370,7 @@ Lookup_Table *read_lookup_table(char *lookup_filename)
       table[ivalue] = row[ivalue];
    nentries++;
    need_sort = FALSE;
-   while (get_next_line(line, sizeof(line), fp) != NULL){
+   while(get_next_line(line, sizeof(line), fp) != NULL){
       (void)get_values_from_string(line, table_nvalues, row, &nvalues);
       if(nvalues != table_nvalues){
          g_print("Wrong number of values on line %d.\n", nentries + 1);
@@ -567,13 +566,13 @@ void lookup_in_table(double index, Lookup_Table * lookup_table, double output_va
    /* Search the table for the value */
    start = 0;
    length = nentries;
-   while (length > 1){
+   while(length > 1){
       mid = start + length / 2;
       offset = mid * (vector_length + 1);
       if(index < lookup_table->table[offset]){
          length = mid - start;
          }
-      else{
+      else {
          length = start + length - mid;
          start = mid;
          }
@@ -651,18 +650,18 @@ double  *get_values_from_string(char *string, int array_size, double *array, int
       num_alloc = 0;
       array = NULL;
       }
-   else{
+   else {
       num_alloc = array_size;
       }
 
    /* Skip leading white space */
    end = string + strlen(string);
    cur = string;
-   while (isspace((int)(*cur)))
+   while(isspace((int)(*cur)))
       cur++;
 
    /* Loop through string looking for doubles */
-   while (cur != end){
+   while(cur != end){
 
       /* Get double */
       prev = cur;
@@ -683,11 +682,11 @@ double  *get_values_from_string(char *string, int array_size, double *array, int
             if(array == NULL){
                array = (void *)g_malloc(num_alloc * sizeof(*array));
                }
-            else{
+            else {
                array = (void *)realloc(array, num_alloc * sizeof(*array));
                }
             }
-         else{
+         else {
             *nread = num_read;
             return array;
             }
@@ -695,7 +694,7 @@ double  *get_values_from_string(char *string, int array_size, double *array, int
       array[num_read - 1] = dvalue;
 
       /* Skip any spaces */
-      while (isspace((int)(*cur)))
+      while(isspace((int)(*cur)))
          cur++;
 
       /* Skip an optional comma */

@@ -38,7 +38,6 @@
 /* Written by Gavin Bell for Silicon Graphics, November 1988.                */
 /* Modified by Andrew Janke - 2001 - quat_to_axis, vects_to_quat             */
 
-
 /* Pass the x and y coordinates of the last and current positions of         */
 /* the mouse, scaled so they are from (-1.0 ... 1.0).                        */
 /*                                                                           */

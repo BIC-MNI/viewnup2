@@ -5,10 +5,6 @@
 
 #include "config.h"
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
 #ifndef FALSE
 #define FALSE  0
 #endif
@@ -18,7 +14,7 @@
 
 #define MAX_SYNCHS 10
 #define MAX_TABLES 100
-#define MAX_VNUP_DIMS 6
+#define MAX_VNUP_DIMS 5
 #define NUM_MERGE_COEFF 10
 #define NO_FILE_STR "---none---"
 #define MERGE_STR "Merge"
@@ -27,11 +23,6 @@
 #define TRANSVERSE 0
 #define SAGITTAL 1
 #define CORONAL 2
-
-/* types of ROI's */
-#define ROI_NONE 0
-#define ROI_CUBE 1
-#define ROI_SPHERE 2
 
 /* types of values */
 #define VALUE_NONE 0
@@ -63,7 +54,7 @@ typedef struct {
    int      nentries;
    int      vector_length;
    double  *table;
-} Lookup_Table;
+   } Lookup_Table;
 
 typedef struct {
    int      virgin;
@@ -95,7 +86,7 @@ typedef struct {
    GtkObject *synch_tilt_x_adj;
    GtkObject *synch_tilt_y_adj;
    GtkObject *synch_tilt_z_adj;
-} Synch_info;
+   } Synch_info;
 
 /* view_info structure */
 struct view_info_struct {
@@ -174,7 +165,7 @@ struct view_info_struct {
    /* Widgets */
    GtkWidget *view_frame;
    GtkWidget *gtkgl_widget;
-};
+   };
 
 /* pane_info structure */
 struct pane_info_struct {
@@ -229,16 +220,9 @@ struct pane_info_struct {
    float    cmap_a[256];
    double   alpha_thresh;
 
-   /* value and ROI display */
+   /* value display */
    int      value_type;
    double   voxel_value;
-
-   int      roi_type;
-   double   roi_x;
-   double   roi_y;
-   double   roi_z;
-   int      roi_gauss;
-   double   roi_fwhm;
 
    /* coordinates and COV */
    double   v[MAX_VNUP_DIMS];
@@ -269,12 +253,12 @@ struct pane_info_struct {
    GtkWidget *vbox_pane;
 
    GtkWidget *hbox_header;
-   
+
    GtkWidget *file_open;
    GtkWidget *file_open_combo;
    GtkWidget *file_open_button;
    GtkWidget *file_open_pixmap;
-   
+
    GtkWidget *left_button;
    GtkWidget *arrow_left;
    GtkWidget *right_button;
@@ -288,9 +272,6 @@ struct pane_info_struct {
    GtkWidget *hbox_values_vox;
    GtkWidget *vox_value_button;
    GtkWidget *vox_value;
-   GtkWidget *hbox_values_roi;
-   GtkWidget *roi_value_button;
-   GtkWidget *roi_value;
    GtkWidget *hbox_coord;
    GtkWidget *coord_button;
    GtkWidget *coord_vx;
@@ -308,7 +289,6 @@ struct pane_info_struct {
    GtkWidget *range_max_scale;
    GtkWidget *range_max_val;
 
-   GtkWidget *hbox_cmap;
    GtkWidget *cmap_grey_radio;
    GtkWidget *cmap_hot_radio;
    GtkWidget *cmap_spect_radio;
@@ -329,7 +309,7 @@ struct pane_info_struct {
 
    GtkObject *range_min_adj;
    GtkObject *range_max_adj;
-};
+   };
 
 typedef struct {
    GtkWidget *wx_spinbutton;
@@ -399,21 +379,6 @@ typedef struct {
    GtkWidget *tilt_lock_y_button;
    GtkWidget *tilt_lock_z_button;
 
-   /* roi */
-   GtkWidget *roi_frame;
-   GtkWidget *roi_none_radiobutton;
-   GtkWidget *roi_cube_radiobutton;
-   GtkWidget *roi_sphere_radiobutton;
-   GtkObject *roi_fwhm_spinbutton_adj;
-   GtkWidget *roi_fwhm_spinbutton;
-   GtkWidget *roi_gauss_checkbutton;
-   GtkObject *roi_x_spinbutton_adj;
-   GtkWidget *roi_x_spinbutton;
-   GtkObject *roi_y_spinbutton_adj;
-   GtkWidget *roi_y_spinbutton;
-   GtkObject *roi_z_spinbutton_adj;
-   GtkWidget *roi_z_spinbutton;
-
    /* cmap */
    GtkWidget *cmap_frame;
    GtkWidget *cmap_min_spinbutton;
@@ -455,7 +420,7 @@ typedef struct {
    GtkWidget *merge_link_button[NUM_MERGE_COEFF];
    GtkWidget *merge_link_pixmap[NUM_MERGE_COEFF];
 
-} Pane_dialog;
+   } Pane_dialog;
 
 /* main_info structure */
 typedef struct {
@@ -481,7 +446,7 @@ typedef struct {
 
    /* pane info dialog */
    Pane_dialog *pane_dialog;
-   GArray *pane_dialog_signal_ids;
+   GArray  *pane_dialog_signal_ids;
 
    /* widgets */
    GtkWidget *main_widget;
@@ -494,11 +459,11 @@ typedef struct {
    GtkWidget *statusbar;
    GtkWidget *progressbar;
 
-   /* gtkgl */
+   /* gtkglext */
    GdkGLConfig *glconfig;
    GtkWidget *gtkgl_share;
    GdkGLContext *glcontext;
-   
+
    /* tooltips */
    GtkTooltips *tooltips;
 
@@ -514,6 +479,6 @@ typedef struct {
    /* timers */
    GTimer  *timer;
    double   draw_count;
-} Main_info;
+   } Main_info;
 
 #endif
