@@ -766,7 +766,7 @@ GtkWidget *create_viewnup_about(void)
                                   _("%s\n%s\n%s\n"),
                                   _("Author: Andrew Janke - rotor@cmr.uq.edu.au"),
                                   _("Web: http://www.cmr.uq.edu.au/~rotor/software"),
-                                  _("Copyright 2002 Andrew Janke")));
+                                  _("Copyright 2001-Eternity Andrew Janke")));
    }
 
 /* pane info dialog */

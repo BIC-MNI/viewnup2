@@ -22,11 +22,13 @@ OPTIONS = -O3
 
 
 INCLUDES = -I/usr/local/mni/include -I/usr/freeware/include \
-           `pkg-config gtkglext-1.0 gtk+-2.0 glib-2.0 --cflags`
+	`pkg-config gtk+-2.0 glib-2.0 --cflags` \
+	-I${HOME}/opt/include/gtkglext-1.0
 CFLAGS = $(OPTIONS) $(INCLUDES)
 
-LDINCLUDES = -L/usr/local/mni/lib32 -L/usr/freeware/lib32 \
-             `pkg-config gtkglext-1.0 gtk+-2.0 glib-2.0 --libs`
+LDINCLUDES = -L/usr/local/mni/lib \
+	`pkg-config gtk+-2.0 glib-2.0 --libs` \
+	-L${HOME}/opt/linux_lib -lgdkglext-x11-1.0 -lgtkglext-x11-1.0
 LDLIBS = -lgtkgl -lpopt -lGL -lGLU -lvolume_io -lminc -lnetcdf -lm
 LDOPTS = $(LDINCLUDES) $(LDLIBS)
 
