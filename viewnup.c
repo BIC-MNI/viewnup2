@@ -32,7 +32,7 @@ Main_info *init_main_info(int init_synch_idx, int transverse, int sagittal, int 
 Main_info main_info;
 
 /* Argument variables */
-int      verbose = FALSE;
+int verbose = FALSE;
 static int draw_fast = FALSE;
 static int transverse = FALSE;
 static int sagittal = FALSE;
@@ -169,10 +169,10 @@ Synch_info *init_synch_info()
    synch->synch_z_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 1);
    synch->synch_t_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 1);
 
-   gtk_object_ref(synch->synch_x_adj);
-   gtk_object_ref(synch->synch_y_adj);
-   gtk_object_ref(synch->synch_z_adj);
-   gtk_object_ref(synch->synch_t_adj);
+   g_object_ref(synch->synch_x_adj);
+   g_object_ref(synch->synch_y_adj);
+   g_object_ref(synch->synch_z_adj);
+   g_object_ref(synch->synch_t_adj);
    return synch;
    }
 
@@ -213,10 +213,10 @@ int remove_synch(Main_info * ptr, Synch_info * synch)
    ptr->n_synchs--;
 
    /* remove and clean up */
-   gtk_object_unref(synch->synch_x_adj);
-   gtk_object_unref(synch->synch_y_adj);
-   gtk_object_unref(synch->synch_z_adj);
-   gtk_object_unref(synch->synch_t_adj);
+   g_object_unref(synch->synch_x_adj);
+   g_object_unref(synch->synch_y_adj);
+   g_object_unref(synch->synch_z_adj);
+   g_object_unref(synch->synch_t_adj);
    g_free(synch);
 
    /* rearrange the array */
@@ -294,18 +294,18 @@ void free_pane_info(Pane_info pane)
    g_ptr_array_free(pane->views, TRUE);
 
    /* kill the adjustments */
-   gtk_object_unref(pane->range_min_adj);
-   gtk_object_unref(pane->range_max_adj);
+   g_object_unref(pane->range_min_adj);
+   g_object_unref(pane->range_max_adj);
 
-   gtk_object_unref(pane->coord_vx_adj);
-   gtk_object_unref(pane->coord_vy_adj);
-   gtk_object_unref(pane->coord_vz_adj);
-   gtk_object_unref(pane->coord_vt_adj);
+   g_object_unref(pane->coord_vx_adj);
+   g_object_unref(pane->coord_vy_adj);
+   g_object_unref(pane->coord_vz_adj);
+   g_object_unref(pane->coord_vt_adj);
 
-   gtk_object_unref(pane->coord_wx_adj);
-   gtk_object_unref(pane->coord_wy_adj);
-   gtk_object_unref(pane->coord_wz_adj);
-   gtk_object_unref(pane->coord_wt_adj);
+   g_object_unref(pane->coord_wx_adj);
+   g_object_unref(pane->coord_wy_adj);
+   g_object_unref(pane->coord_wz_adj);
+   g_object_unref(pane->coord_wt_adj);
 
    g_free(pane);
    }
@@ -586,7 +586,10 @@ int main(int argc, char *argv[])
    int      c;
    int      init_synch_idx;
    poptContext pctx;
-
+   
+   // temporary measure
+   verbose = TRUE;
+   
 #ifdef ENABLE_NLS
    bindtextdomain(PACKAGE, PACKAGE_LOCALE_DIR);
    textdomain(PACKAGE);
@@ -596,10 +599,11 @@ int main(int argc, char *argv[])
    gtk_init(&argc, &argv);
    gtk_gl_init(&argc, &argv);
 
-   g_print(_("Finished gtk/gtkgl init\n"));
-
+   if(verbose){
+      g_print(_("Finished gtk & gtkgl init\n"));
+      }
+   
    /* parse viewnup's remaining arguments */
-   verbose = TRUE;
 //   optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
 
    /* assume remaining args are input files */
@@ -639,15 +643,24 @@ int main(int argc, char *argv[])
 
    /* init main info structure */
    ptr = init_main_info(init_synch_idx, transverse, sagittal, coronal);
-
+   if(verbose){
+      g_print(_("Initialised main info...\n"));
+      }
+   
    /* create the main window and dialogs */
    ptr->main_widget = create_viewnup_main(ptr);
    ptr->synch_dialog = create_synch_dialog(ptr);
    ptr->pane_info_dialog = create_pane_info_dialog(ptr);
    gtk_widget_show(ptr->main_widget);
-
+   if(verbose){
+      g_print(_("Created and shown main widgets...\n"));
+      }
+   
    /* initialize and configure Main gtkgl widget and context */
    configure_gtkgl(ptr);
+   if(verbose){
+      g_print(_("Configured gtkgl...\n"));
+      }
 
    /* setup the initial panes */
    if(verbose){

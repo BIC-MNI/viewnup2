@@ -60,6 +60,7 @@ void     draw_bbox_line(double *obl_norm, double *obl_point,
 void configure_gtkgl(Main_info * ptr)
 {
    /* set up the GdkGLConfig */
+   g_print("1\n");
    ptr->glconfig = gdk_gl_config_new_by_mode(GDK_GL_MODE_RGB |
                                              GDK_GL_MODE_ALPHA |
                                              GDK_GL_MODE_DEPTH | GDK_GL_MODE_DOUBLE);
@@ -67,16 +68,22 @@ void configure_gtkgl(Main_info * ptr)
       g_print("*** Cannot find an approriate double-buffered visual.\n");
       exit(EXIT_FAILURE);
       }
-
-   /* set up the shared widget */
+   
+   g_print("2\n");
+   
    ptr->gtkgl_share = gtk_drawing_area_new();
+   g_print("3\n");
    gtk_widget_set_gl_capability(ptr->gtkgl_share,
                                 ptr->glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
+   g_print("4\n");
    gtk_box_pack_start(GTK_BOX(ptr->main_vbox), ptr->gtkgl_share, FALSE, FALSE, 0);
+   g_print("5\n");
    gtk_widget_realize(ptr->gtkgl_share);
 
+   g_print("6\n");
    /* set up the shared context object */
    ptr->glcontext = gtk_widget_get_gl_context(ptr->gtkgl_share);
+   g_print("7\n");
    }
 
 GtkWidget *create_gtkgl_widget(Main_info * ptr, Pane_info pane, View_info view)

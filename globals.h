@@ -456,6 +456,7 @@ typedef struct {
    GtkWidget *progressbar;
 
    /* gtkglext */
+   GtkWidget *gtkgl_share_frame;
    GdkGLConfig *glconfig;
    GtkWidget *gtkgl_share;
    GdkGLContext *glcontext;

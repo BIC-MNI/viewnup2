@@ -511,8 +511,8 @@ void update_merge_combos(Main_info * ptr)
          g_strdup(gtk_entry_get_text(GTK_ENTRY(ptr->pane_dialog->merge_combo_entry[c])));
 
       /* block the combo callback */
-      gtk_signal_handler_block_by_data(GTK_OBJECT(ptr->pane_dialog->merge_combo_entry[c]),
-                                       GINT_TO_POINTER(c));
+//      gtk_signal_handler_block_by_data(GTK_OBJECT(ptr->pane_dialog->merge_combo_entry[c]),
+//                                       GINT_TO_POINTER(c));
 
       /* update the combo */
       gtk_combo_set_popdown_strings(GTK_COMBO(ptr->pane_dialog->merge_combo[c]),
@@ -524,9 +524,9 @@ void update_merge_combos(Main_info * ptr)
          }
 
       /* unblock the combo callback */
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT
-                                         (ptr->pane_dialog->merge_combo_entry[c]),
-                                         GINT_TO_POINTER(c));
+//      gtk_signal_handler_unblock_by_data(GTK_OBJECT
+//                                         (ptr->pane_dialog->merge_combo_entry[c]),
+//                                         GINT_TO_POINTER(c));
       }
 
    g_free(prev);
@@ -2090,14 +2090,14 @@ void pi_merge_coeff_value_changed(GtkAdjustment * adjustment, gpointer user_data
                }
 
             /* then set the appropriate adjustment */
-            gtk_signal_handler_block_by_data(GTK_OBJECT
-                                             (ptr->pane_dialog->merge_coeff_adj[c]),
-                                             GINT_TO_POINTER(c));
-            gtk_adjustment_set_value(GTK_ADJUSTMENT(ptr->pane_dialog->merge_coeff_adj[c]),
-                                     pane->merge_coeff[c]);
-            gtk_signal_handler_unblock_by_data(GTK_OBJECT
-                                               (ptr->pane_dialog->merge_coeff_adj[c]),
-                                               GINT_TO_POINTER(c));
+//            gtk_signal_handler_block_by_data(GTK_OBJECT
+//                                             (ptr->pane_dialog->merge_coeff_adj[c]),
+//                                             GINT_TO_POINTER(c));
+//            gtk_adjustment_set_value(GTK_ADJUSTMENT(ptr->pane_dialog->merge_coeff_adj[c]),
+//                                     pane->merge_coeff[c]);
+//            gtk_signal_handler_unblock_by_data(GTK_OBJECT
+//                                               (ptr->pane_dialog->merge_coeff_adj[c]),
+//                                               GINT_TO_POINTER(c));
             }
          }
       }

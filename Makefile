@@ -20,8 +20,7 @@ WARNINGS = -Wall -Wunused -Wmissing-prototypes -Wmissing-declarations
 # OPTIONS = -O3 $(WARNINGS) -DGTK_DISABLE_DEPRECATED=1
 OPTIONS = -O3 $(WARNINGS)
 
-
-INCLUDES = -I/usr/local/mni/include -I/usr/freeware/include \
+INCLUDES = -I/usr/local/mni/include -I/usr/include \
 	`pkg-config gtkglext-1.0 gtk+-2.0 glib-2.0 --cflags`
 CFLAGS = $(OPTIONS) $(INCLUDES)
 
