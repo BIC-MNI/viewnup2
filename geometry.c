@@ -60,13 +60,13 @@ double vdot(double *v1, double *v2)
 /* returns the euc length of a vector */
 double vlength(double *v)
 {
-   return sqrt(SQR(v[0]) + SQR(v[1]) + SQR(v[2]));
+   return sqrt(SQR2(v[0]) + SQR2(v[1]) + SQR2(v[2]));
    }
 
 /* returns the euc distance between two points */
 double veuc(double *p1, double *p2)
 {
-   return sqrt(SQR(p2[0] - p1[0]) + SQR(p2[1] - p1[1]) + SQR(p2[2] - p1[2]));
+   return sqrt(SQR2(p2[0] - p1[0]) + SQR2(p2[1] - p1[1]) + SQR2(p2[2] - p1[2]));
    }
 
 /* normalise a vector */
@@ -91,7 +91,7 @@ int intersect_planes(double *norml, double *pointl,
       return FALSE;
       }
 
-   det = (vdot(normp1, normp1) * vdot(normp2, normp2)) - SQR(vdot(normp1, normp2));
+   det = (vdot(normp1, normp1) * vdot(normp2, normp2)) - SQR2(vdot(normp1, normp2));
 
    d1 = vdot(normp1, pointp1);
    d2 = vdot(normp2, pointp2);
@@ -260,7 +260,6 @@ int cohen_sutherland_clip(double *x0, double *y0,
 /* convert a pane voxel co-ordinate to a world co-ordinate */
 void update_voxel_from_world(Pane_info pane)
 {
-
    general_inverse_transform_point(pane->transform,
                                    pane->w[0], pane->w[1], pane->w[2],
                                    &pane->v[0], &pane->v[1], &pane->v[2]);
@@ -270,7 +269,6 @@ void update_voxel_from_world(Pane_info pane)
 /* convert a pane world co-ordinate to a voxel co-ordinate */
 void update_world_from_voxel(Pane_info pane)
 {
-
    general_transform_point(pane->transform,
                            pane->v[0], pane->v[1], pane->v[2],
                            &pane->w[0], &pane->w[1], &pane->w[2]);

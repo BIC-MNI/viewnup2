@@ -268,19 +268,19 @@ static void normalize_quat(double q[4])
 /* this is a more general form to the original           */
 void build_rotmatrix(double m[4][4], double quat[4])
 {
-   m[0][0] = SQR(quat[3]) + SQR(quat[0]) - SQR(quat[1]) - SQR(quat[2]);
+   m[0][0] = SQR2(quat[3]) + SQR2(quat[0]) - SQR2(quat[1]) - SQR2(quat[2]);
    m[0][1] = 2.0 * (quat[0] * quat[1] - quat[2] * quat[3]);
    m[0][2] = 2.0 * (quat[2] * quat[0] + quat[1] * quat[3]);
    m[0][3] = 0.0;
 
    m[1][0] = 2.0 * (quat[0] * quat[1] + quat[2] * quat[3]);
-   m[1][1] = SQR(quat[3]) - SQR(quat[0]) + SQR(quat[1]) - SQR(quat[2]);
+   m[1][1] = SQR2(quat[3]) - SQR2(quat[0]) + SQR2(quat[1]) - SQR2(quat[2]);
    m[1][2] = 2.0 * (quat[1] * quat[2] - quat[0] * quat[3]);
    m[1][3] = 0.0;
 
    m[2][0] = 2.0 * (quat[2] * quat[0] - quat[1] * quat[3]);
    m[2][1] = 2.0 * (quat[1] * quat[2] + quat[0] * quat[3]);
-   m[2][2] = SQR(quat[3]) - SQR(quat[0]) - SQR(quat[1]) + SQR(quat[2]);
+   m[2][2] = SQR2(quat[3]) - SQR2(quat[0]) - SQR2(quat[1]) + SQR2(quat[2]);
    m[2][3] = 0.0;
 
    m[3][0] = 0.0;
@@ -292,7 +292,7 @@ void build_rotmatrix(double m[4][4], double quat[4])
 /* a simplification of above */
 void quat_to_xvec(double vec[3], double quat[4])
 {
-   vec[0] = SQR(quat[3]) + SQR(quat[0]) - SQR(quat[1]) - SQR(quat[2]);
+   vec[0] = SQR2(quat[3]) + SQR2(quat[0]) - SQR2(quat[1]) - SQR2(quat[2]);
    vec[1] = 2.0 * (quat[0] * quat[1] - quat[2] * quat[3]);
    vec[2] = 2.0 * (quat[2] * quat[0] + quat[1] * quat[3]);
    }
@@ -300,7 +300,7 @@ void quat_to_xvec(double vec[3], double quat[4])
 void quat_to_yvec(double vec[3], double quat[4])
 {
    vec[0] = 2.0 * (quat[0] * quat[1] + quat[2] * quat[3]);
-   vec[1] = SQR(quat[3]) - SQR(quat[0]) + SQR(quat[1]) - SQR(quat[2]);
+   vec[1] = SQR2(quat[3]) - SQR2(quat[0]) + SQR2(quat[1]) - SQR2(quat[2]);
    vec[2] = 2.0 * (quat[1] * quat[2] - quat[0] * quat[3]);
    }
 
@@ -308,5 +308,5 @@ void quat_to_zvec(double vec[3], double quat[4])
 {
    vec[0] = 2.0 * (quat[2] * quat[0] - quat[1] * quat[3]);
    vec[1] = 2.0 * (quat[1] * quat[2] + quat[0] * quat[3]);
-   vec[2] = SQR(quat[3]) - SQR(quat[0]) - SQR(quat[1]) + SQR(quat[2]);
+   vec[2] = SQR2(quat[3]) - SQR2(quat[0]) - SQR2(quat[1]) + SQR2(quat[2]);
    }

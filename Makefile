@@ -17,7 +17,7 @@ CC = gcc
 
 WARNINGS = -Wall -Wunused -Wmissing-prototypes -Wmissing-declarations
 
-#OPTIONS = -O3 $(WARNINGS) -DGTK_DISABLE_DEPRECATED=1
+# OPTIONS = -O3 $(WARNINGS) -DGTK_DISABLE_DEPRECATED=1
 OPTIONS = -O3 $(WARNINGS)
 
 

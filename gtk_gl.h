@@ -13,6 +13,9 @@ GtkWidget *create_gtkgl_widget(Main_info * ptr, Pane_info pane, View_info view);
 void     redraw_pane_views(Pane_info pane);
 void     redraw_pane_view(View_info view);
 
+void     resize_pane_views(Pane_info pane);
+void     resize_pane_view(View_info view);
+
 void     update_slice_tilt(Pane_info pane, View_info view);
 
 void     calc_merge_extents(Pane_info merge);

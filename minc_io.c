@@ -46,7 +46,7 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
    else {
       axis_order_ptr = NULL;
       for(c = 0; c < pane->n_dims; c++){
-//         g_print("Dim[%d] %s\n", c, dim_names[c]);
+         g_print("Dim[%d] %s\n", c, dim_names[c]);
 
          if(strcmp(dim_names[c], axis_order_4D_time[3]) == 0){
             if(verbose){

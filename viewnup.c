@@ -125,7 +125,8 @@ Main_info *init_main_info(int init_synch_idx, int transverse, int sagittal, int 
 
    /* pane info dialog */
    ptr->pane_dialog = (Pane_dialog *) g_malloc(sizeof(Pane_dialog));
-   ptr->pane_dialog_signal_ids = g_array_new(FALSE, FALSE, sizeof(gulong));
+   ptr->pane_dialog->signal_ids = g_array_new(FALSE, FALSE, sizeof(gulong));
+   ptr->pane_dialog->obj_ptrs = g_ptr_array_new();
 
    /* initialise highlight and normal styles */
 // very likely not needed now
@@ -241,7 +242,6 @@ View_info init_view_info(int type)
    view->reload_image = TRUE;
    view->reload_texmap = TRUE;
    view->refresh_view = TRUE;
-   view->recalc_view = TRUE;
 
    /* init array indexes */
    init_view_idx(view);
@@ -422,12 +422,15 @@ void print_pane_info(Pane_info pane)
            pane->v[2], pane->v[3]);
    g_print(_("  w-xyzt      %5.2f|%5.2f|%5.2f|%5.2f\n"), pane->w[0], pane->w[1],
            pane->w[2], pane->w[3]);
+   g_print(_("  cov-xyzt    %5.2f|%5.2f|%5.2f|%5.2f\n"), pane->cov[0], pane->cov[1],
+           pane->cov[2], pane->cov[3]);
    g_print(_("  Cmap        %s\n"), pane->cmap_ptr->name);
 
    for(c = 0; c < pane->views->len; c++){
       view = g_ptr_array_index(pane->views, c);
 
       g_print(_("V[%d] - %d\n"), c, view->type);
+      g_print(_("  +XYZ idx     %d|%d|%d\n"), view->x_idx, view->y_idx, view->z_idx);
       g_print(_("  +TEX[%d]\n"), view->texmap_id);
       g_print(_("  |    +size   %d|%d - %d\n"), view->texmap_size[0],
               view->texmap_size[1], view->texmap_space);
@@ -437,18 +440,21 @@ void print_pane_info(Pane_info pane)
       g_print(_("  |     | q1  [%g:%g:%g]\n"), view->q1[0], view->q1[1], view->q1[2]);
       g_print(_("  |     | q2  [%g:%g:%g]\n"), view->q2[0], view->q2[1], view->q2[2]);
       g_print(_("  |     | q3  [%g:%g:%g]\n"), view->q3[0], view->q3[1], view->q3[2]);
-      g_print(_("  |    +scale  %g\n"), view->GLscalefac);
-      g_print(_("  |    +trans  %g|%g|%g\n"), view->GLtrans_x, view->GLtrans_y,
+      g_print(_("  +pix_size    %g|%g\n"), view->pix_size[0], view->pix_size[1]);
+      g_print(_("  +view_start  %g|%g\n"), view->view_start[0], view->view_start[1]);
+      g_print(_("  +view_stop   %g|%g\n"), view->view_stop[0], view->view_stop[1]);
+      g_print(_("  +scale       %g\n"), view->GLscalefac);
+      g_print(_("  +trans       %g|%g|%g\n"), view->GLtrans_x, view->GLtrans_y,
               view->GLtrans_z);
-      g_print(_("  |    +rot_q  %g|%g|%g|%g\n"), view->rot_quat[0], view->rot_quat[1],
+      g_print(_("  +rot_q       %g|%g|%g|%g\n"), view->rot_quat[0], view->rot_quat[1],
               view->rot_quat[2], view->rot_quat[3]);
-      g_print(_("  |    |rot_v  %g|%g|%g phi %g\n"), view->rot_vec[0], view->rot_vec[1],
+      g_print(_("  |rot_v       %g|%g|%g phi %g\n"), view->rot_vec[0], view->rot_vec[1],
               view->rot_vec[2], view->rot_phi);
-      g_print(_("  |    +tlt_q  %g|%g|%g|%g\n"), view->tilt_quat[0], view->tilt_quat[1],
+      g_print(_("  +tlt_q       %g|%g|%g|%g\n"), view->tilt_quat[0], view->tilt_quat[1],
               view->tilt_quat[2], view->tilt_quat[3]);
-      g_print(_("  |    |tlt_vw %g|%g|%g\n"), view->tilt_w[0], view->tilt_w[1],
+      g_print(_("  |tlt_vw      %g|%g|%g\n"), view->tilt_w[0], view->tilt_w[1],
               view->tilt_w[2]);
-      g_print(_("  |    |tlt_vv %g|%g|%g\n"), view->tilt_v[0], view->tilt_v[1],
+      g_print(_("  |tlt_vv      %g|%g|%g\n"), view->tilt_v[0], view->tilt_v[1],
               view->tilt_v[2]);
       }
 
@@ -590,7 +596,7 @@ int main(int argc, char *argv[])
    verbose = TRUE;
 //   optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
 
-   /* assume remaining args input files */
+   /* assume remaining args are input files */
    n_infiles = argc - 1;
    if(n_infiles > 128){
       g_error(_("Too many input files (max 128)\n"));
@@ -611,7 +617,7 @@ int main(int argc, char *argv[])
       init_synch_idx = 0;
       }
 
-   /* a bit of ince info */
+   /* a bit of info */
    if(verbose){
       gint     major, minor;
 
@@ -648,7 +654,16 @@ int main(int argc, char *argv[])
       }
    else {
       for(c = 0; c < n_infiles; c++){
+         if(verbose){
+            g_print(_("[%d] - %s\n"), c, infiles[c]);
+            }
+         
+         /* add the pane */
          pane = add_pane(ptr, FALSE, NULL, FALSE);
+         
+         /* trigger the file-open callback */
+         gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(pane->file_open_combo)->entry), infiles[c]);
+         gtk_widget_activate(GTK_WIDGET(GTK_COMBO(pane->file_open_combo)->entry));
          }
 
       add_merge_pane = (n_infiles == 1) ? FALSE : TRUE;
@@ -660,18 +675,7 @@ int main(int argc, char *argv[])
       }
 
    /* make the first pane active */
-//   make_pane_active(g_ptr_array_index(ptr->panes, 0));
-
-   /* open the infiles */
-   for(c = 0; c < n_infiles; c++){
-      if(verbose){
-         g_print(_("[%d] - %s\n"), c, infiles[c]);
-         }
-
-      pane = g_ptr_array_index(ptr->panes, c);
-      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(pane->file_open_combo)->entry), infiles[c]);
-      gtk_widget_activate(GTK_WIDGET(GTK_COMBO(pane->file_open_combo)->entry));
-      }
+   make_pane_active(g_ptr_array_index(ptr->panes, 0));
 
    g_print(_("Entering gtk_main() loop\n"));
    gtk_main();

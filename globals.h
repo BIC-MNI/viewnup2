@@ -31,8 +31,8 @@
 #define VALUE_RGBA 3
 
 /* a few macros */
-#ifndef SQR
-#define SQR(x) x*x
+#ifndef SQR2
+#define SQR2(x) x*x
 #endif
 
 #include <stdlib.h>
@@ -103,7 +103,6 @@ struct view_info_struct {
    int      reload_image;
    int      reload_cmap;
    int      refresh_view;
-   int      recalc_view;
 
    int      x_idx;
    int      y_idx;
@@ -227,6 +226,7 @@ struct pane_info_struct {
    /* coordinates and COV */
    double   v[MAX_VNUP_DIMS];
    double   w[MAX_VNUP_DIMS];
+   
    double   cov[MAX_VNUP_DIMS];
 
    /* vector variables */
@@ -273,7 +273,8 @@ struct pane_info_struct {
    GtkWidget *vox_value_button;
    GtkWidget *vox_value;
    GtkWidget *hbox_coord;
-   GtkWidget *coord_button;
+   GtkWidget *coord_reset_button;
+   GtkWidget *coord_type_button;
    GtkWidget *coord_vx;
    GtkWidget *coord_vy;
    GtkWidget *coord_vz;
@@ -289,10 +290,10 @@ struct pane_info_struct {
    GtkWidget *range_max_scale;
    GtkWidget *range_max_val;
 
-   GtkWidget *cmap_grey_radio;
-   GtkWidget *cmap_hot_radio;
-   GtkWidget *cmap_spect_radio;
-   GtkWidget *cmap_bluered_radio;
+   GtkWidget *cmap_grey_button;
+   GtkWidget *cmap_hot_button;
+   GtkWidget *cmap_spect_button;
+   GtkWidget *cmap_bluered_button;
    GtkWidget *cmap_combo;
    GtkWidget *cmap_combo_entry;
 
@@ -312,24 +313,19 @@ struct pane_info_struct {
    };
 
 typedef struct {
-   GtkWidget *wx_spinbutton;
-   GtkWidget *wy_spinbutton;
-   GtkWidget *wz_spinbutton;
-   GtkWidget *wt_spinbutton;
-
-   GtkWidget *vx_spinbutton;
-   GtkWidget *vy_spinbutton;
-   GtkWidget *vz_spinbutton;
-   GtkWidget *vt_spinbutton;
-
-   GtkWidget *crosshair_checkbutton;
-   GtkWidget *perspective_checkbutton;
-   GtkWidget *vector_checkbutton;
-   GtkWidget *slicebox_checkbutton;
+   
+   /* signal and object ptrs */
+   GArray  *signal_ids;
+   GPtrArray *obj_ptrs;
+   
    GtkWidget *linear_interp_checkbutton;
+   GtkWidget *vector_checkbutton;
+   GtkWidget *perspective_checkbutton;
    GtkWidget *bbox_checkbutton;
-   GtkObject *crosshair_spinbutton_adj;
+   GtkWidget *sbox_checkbutton;
+   GtkWidget *crosshair_checkbutton;
    GtkWidget *crosshair_spinbutton;
+   GtkObject *crosshair_spinbutton_adj;
 
    /* view link togglebuttons */
    GtkWidget *scale_link_button;
@@ -385,10 +381,10 @@ typedef struct {
    GtkWidget *cmap_max_spinbutton;
    GtkWidget *cmap_max_hscale;
    GtkWidget *cmap_min_hscale;
-   GtkWidget *cmap_grey_radiobutton;
-   GtkWidget *cmap_hot_radiobutton;
-   GtkWidget *cmap_spect_radiobutton;
-   GtkWidget *cmap_bluered_radiobutton;
+   GtkWidget *cmap_grey_button;
+   GtkWidget *cmap_hot_button;
+   GtkWidget *cmap_spect_button;
+   GtkWidget *cmap_bluered_button;
    GtkWidget *cmap_combo;
    GtkWidget *cmap_combo_entry;
    GtkObject *cmap_alpha_spinbutton_adj;
@@ -446,7 +442,6 @@ typedef struct {
 
    /* pane info dialog */
    Pane_dialog *pane_dialog;
-   GArray  *pane_dialog_signal_ids;
 
    /* widgets */
    GtkWidget *main_widget;

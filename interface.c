@@ -103,7 +103,6 @@ void delete_pane_widgets(Main_info * ptr, Pane_info pane)
 void create_pane_widgets(Main_info * ptr, Pane_info pane)
 {
    GtkWidget *hbox_value_cmap;
-   GSList  *cmap_group;
 
    pane->hbox_pane = gtk_hbox_new(FALSE, 0);
    gtk_widget_show(pane->hbox_pane);
@@ -188,10 +187,17 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
    gtk_widget_show(pane->hbox_coord);
    gtk_box_pack_start(GTK_BOX(pane->vbox_pane), pane->hbox_coord, FALSE, TRUE, 0);
 
-   pane->coord_button = gtk_button_new_with_label(_("W:"));
-   gtk_widget_show(pane->coord_button);
-   gtk_box_pack_start(GTK_BOX(pane->hbox_coord), pane->coord_button, FALSE, TRUE, 0);
-   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_button,
+   pane->coord_reset_button = gtk_button_new_with_label(_("R"));
+   gtk_widget_show(pane->coord_reset_button);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_coord), pane->coord_reset_button, FALSE, TRUE,
+                      0);
+   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_reset_button,
+                        _("Reset Co-ordinates to default"), NULL);
+
+   pane->coord_type_button = gtk_button_new_with_label(_("W:"));
+   gtk_widget_show(pane->coord_type_button);
+   gtk_box_pack_start(GTK_BOX(pane->hbox_coord), pane->coord_type_button, FALSE, TRUE, 0);
+   gtk_tooltips_set_tip(ptr->tooltips, pane->coord_type_button,
                         _("Flip between World and Voxel Coordinates"), NULL);
 
    /* set up the spinbuttons with a NULL adjustment to begin with */
@@ -237,8 +243,10 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
                         NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pane->coord_wt), TRUE);
 
-   g_signal_connect(G_OBJECT(pane->coord_button), "clicked",
-                    G_CALLBACK(coord_button_clicked), pane);
+   g_signal_connect(G_OBJECT(pane->coord_reset_button), "clicked",
+                    G_CALLBACK(coord_reset_button_clicked), pane);
+   g_signal_connect(G_OBJECT(pane->coord_type_button), "clicked",
+                    G_CALLBACK(coord_type_button_clicked), pane);
    g_signal_connect(G_OBJECT(pane->coord_vx), "changed",
                     G_CALLBACK(vx_coord_changed), pane);
    g_signal_connect(G_OBJECT(pane->coord_vy), "changed",
@@ -277,39 +285,32 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
                        G_CALLBACK(vox_value_button_clicked), pane);
 
       /* cmap */
-      pane->cmap_grey_radio = gtk_radio_button_new_with_label(NULL, _("grey"));
-      gtk_widget_show(pane->cmap_grey_radio);
-      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_grey_radio, FALSE, TRUE, 0);
-      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_grey_radio,
+      pane->cmap_grey_button = gtk_button_new_with_label(_("grey"));
+      gtk_widget_show(pane->cmap_grey_button);
+      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_grey_button, FALSE, TRUE,
+                         0);
+      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_grey_button,
                            _("Grey Colourmap(default)"), NULL);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pane->cmap_grey_radio), TRUE);
-      gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pane->cmap_grey_radio), FALSE);
 
-      cmap_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(pane->cmap_grey_radio));
-
-      pane->cmap_hot_radio = gtk_radio_button_new_with_label(cmap_group, _("hot"));
-      gtk_widget_show(pane->cmap_hot_radio);
-      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_hot_radio, FALSE, TRUE, 0);
-      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_hot_radio, _("HotMetal Colourmap"),
+      pane->cmap_hot_button = gtk_button_new_with_label(_("hot"));
+      gtk_widget_show(pane->cmap_hot_button);
+      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_hot_button, FALSE, TRUE, 0);
+      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_hot_button, _("HotMetal Colourmap"),
                            NULL);
-      gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pane->cmap_hot_radio), FALSE);
 
-      pane->cmap_spect_radio = gtk_radio_button_new_with_label(cmap_group, _("spect"));
-      gtk_widget_show(pane->cmap_spect_radio);
-      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_spect_radio, FALSE, TRUE,
+      pane->cmap_spect_button = gtk_button_new_with_label(_("spect"));
+      gtk_widget_show(pane->cmap_spect_button);
+      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_spect_button, FALSE, TRUE,
                          0);
-      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_spect_radio, _("Spectral Colourmap"),
-                           NULL);
-      gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pane->cmap_spect_radio), FALSE);
+      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_spect_button,
+                           _("Spectral Colourmap"), NULL);
 
-      pane->cmap_bluered_radio =
-         gtk_radio_button_new_with_label(cmap_group, _("bluered"));
-      gtk_widget_show(pane->cmap_bluered_radio);
-      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_bluered_radio, FALSE, TRUE,
+      pane->cmap_bluered_button = gtk_button_new_with_label(_("bluered"));
+      gtk_widget_show(pane->cmap_bluered_button);
+      gtk_box_pack_start(GTK_BOX(hbox_value_cmap), pane->cmap_bluered_button, FALSE, TRUE,
                          0);
-      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_bluered_radio,
+      gtk_tooltips_set_tip(ptr->tooltips, pane->cmap_bluered_button,
                            _("Blue-Red Colourmap"), NULL);
-      gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pane->cmap_bluered_radio), FALSE);
 
       pane->cmap_combo = gtk_combo_new();
       gtk_widget_show(pane->cmap_combo);
@@ -365,14 +366,14 @@ void create_pane_widgets(Main_info * ptr, Pane_info pane)
                        G_CALLBACK(range_min_val_changed), pane);
       g_signal_connect(G_OBJECT(pane->range_max_val), "changed",
                        G_CALLBACK(range_max_val_changed), pane);
-      g_signal_connect(G_OBJECT(pane->cmap_grey_radio), "clicked",
-                       G_CALLBACK(cmap_grey_radio_clicked), pane);
-      g_signal_connect(G_OBJECT(pane->cmap_hot_radio), "clicked",
-                       G_CALLBACK(cmap_hot_radio_clicked), pane);
-      g_signal_connect(G_OBJECT(pane->cmap_spect_radio), "clicked",
-                       G_CALLBACK(cmap_spect_radio_clicked), pane);
-      g_signal_connect(G_OBJECT(pane->cmap_bluered_radio), "clicked",
-                       G_CALLBACK(cmap_bluered_radio_clicked), pane);
+      g_signal_connect(G_OBJECT(pane->cmap_grey_button), "clicked",
+                       G_CALLBACK(cmap_grey_button_clicked), pane);
+      g_signal_connect(G_OBJECT(pane->cmap_hot_button), "clicked",
+                       G_CALLBACK(cmap_hot_button_clicked), pane);
+      g_signal_connect(G_OBJECT(pane->cmap_spect_button), "clicked",
+                       G_CALLBACK(cmap_spect_button_clicked), pane);
+      g_signal_connect(G_OBJECT(pane->cmap_bluered_button), "clicked",
+                       G_CALLBACK(cmap_bluered_button_clicked), pane);
       g_signal_connect(G_OBJECT(pane->cmap_combo_entry), "changed",
                        G_CALLBACK(cmap_combo_entry_changed), pane);
       }
@@ -760,12 +761,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    GtkWidget *pi_pane_clone_pixmap;
    GtkWidget *pi_pane_close_button;
    GtkWidget *pi_pane_close_pixmap;
-   GtkWidget *pi_coord_frame;
-   GtkWidget *pi_coord_table;
-
-   /* coord buttons */
-   GtkWidget *pi_voxel_button;
-   GtkWidget *pi_world_button;
 
    /* view */
    GtkWidget *pi_view_frame;
@@ -836,9 +831,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    GtkWidget *pi_merge_table;
 
    /* lists and junk */
-   GList   *pi_pane_combo_items = NULL;
    GList   *pi_view_type_combo_items = NULL;
-   GSList  *cmap_group = NULL;
    GList   *pi_cmap_combo_items = NULL;
 
    GtkTooltips *tooltips;
@@ -888,101 +881,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_pane_close_pixmap);
    gtk_container_add(GTK_CONTAINER(pi_pane_close_button), pi_pane_close_pixmap);
 
-   /* coordinates */
-   pi_coord_frame = gtk_frame_new(_("Coordinates(xyz time/vector)"));
-   gtk_widget_show(pi_coord_frame);
-   gtk_box_pack_start(GTK_BOX(pi_vbox), pi_coord_frame, FALSE, FALSE, 3);
-   gtk_container_set_border_width(GTK_CONTAINER(pi_coord_frame), 3);
-
-   pi_coord_table = gtk_table_new(2, 5, FALSE);
-   gtk_widget_show(pi_coord_table);
-   gtk_container_add(GTK_CONTAINER(pi_coord_frame), pi_coord_table);
-   gtk_container_set_border_width(GTK_CONTAINER(pi_coord_table), 3);
-   gtk_table_set_col_spacings(GTK_TABLE(pi_coord_table), 3);
-
-   pi_voxel_button = gtk_button_new_with_label(_("voxel"));
-   gtk_widget_show(pi_voxel_button);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi_voxel_button, 0, 1, 1, 2,
-                    (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi_voxel_button, _("click to reset coords to COV"),
-                        NULL);
-
-   pi_world_button = gtk_button_new_with_label(_("world"));
-   gtk_widget_show(pi_world_button);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi_world_button, 0, 1, 0, 1,
-                    (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi_world_button, _("click to reset coords to 0,0,0"),
-                        NULL);
-
-   /* co-ordinate spinbuttons */
-   /* world */
-   pi->wx_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->wx_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->wx_spinbutton, 1, 2, 0, 1,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->wx_spinbutton, _("world x-coordinate"), NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->wx_spinbutton), TRUE);
-
-   pi->wy_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->wy_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->wy_spinbutton, 2, 3, 0, 1,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->wy_spinbutton, _("world y-coordinate"), NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->wy_spinbutton), TRUE);
-
-   pi->wz_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->wz_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->wz_spinbutton, 3, 4, 0, 1,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->wz_spinbutton, _("world z-coordinate"), NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->wz_spinbutton), TRUE);
-
-   pi->wt_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->wt_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->wt_spinbutton, 4, 5, 0, 1,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->wt_spinbutton, _("world time/vector-coordinate"),
-                        NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->wt_spinbutton), TRUE);
-
-   /* voxel */
-   pi->vx_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->vx_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->vx_spinbutton, 1, 2, 1, 2,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->vx_spinbutton, _("voxel x-coordinate"), NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->vx_spinbutton), TRUE);
-
-   pi->vy_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->vy_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->vy_spinbutton, 2, 3, 1, 2,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->vy_spinbutton, _("voxel y-coordinate"), NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->vy_spinbutton), TRUE);
-
-   pi->vz_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->vz_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->vz_spinbutton, 3, 4, 1, 2,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->vz_spinbutton, _("voxel z-coordinate"), NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->vz_spinbutton), TRUE);
-
-   pi->vt_spinbutton = gtk_spin_button_new(NULL, 1, 2);
-   gtk_widget_show(pi->vt_spinbutton);
-   gtk_table_attach(GTK_TABLE(pi_coord_table), pi->vt_spinbutton, 4, 5, 1, 2,
-                    (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
-                    (GtkAttachOptions) (0), 0, 0);
-   gtk_tooltips_set_tip(tooltips, pi->vt_spinbutton, _("voxel time/vector-coordinate"),
-                        NULL);
-   gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->vt_spinbutton), TRUE);
-
    /* views sub-frame */
    pi_view_frame = gtk_frame_new(_("Views(xyz)"));
    gtk_widget_show(pi_view_frame);
@@ -1022,9 +920,9 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                         _("display vector data as vectors"), NULL);
    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->vector_checkbutton), TRUE);
 
-   pi->slicebox_checkbutton = gtk_check_button_new_with_label(_("slice box"));
-   gtk_widget_show(pi->slicebox_checkbutton);
-   gtk_table_attach(GTK_TABLE(pi_view_check_table), pi->slicebox_checkbutton, 1, 2, 1, 2,
+   pi->sbox_checkbutton = gtk_check_button_new_with_label(_("slice box"));
+   gtk_widget_show(pi->sbox_checkbutton);
+   gtk_table_attach(GTK_TABLE(pi_view_check_table), pi->sbox_checkbutton, 1, 2, 1, 2,
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
 
    pi->linear_interp_checkbutton = gtk_check_button_new_with_label(_("linear interp"));
@@ -1536,41 +1434,27 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_cmap_type_hbox);
    gtk_box_pack_start(GTK_BOX(pi_cmap_vbox), pi_cmap_type_hbox, FALSE, TRUE, 0);
 
-   pi->cmap_grey_radiobutton = gtk_radio_button_new_with_label(NULL, _("grey"));
-   gtk_widget_show(pi->cmap_grey_radiobutton);
-   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_grey_radiobutton, FALSE, FALSE,
-                      0);
-   gtk_tooltips_set_tip(tooltips, pi->cmap_grey_radiobutton, _("Grey Colourmap(default)"),
+   pi->cmap_grey_button = gtk_button_new_with_label(_("grey"));
+   gtk_widget_show(pi->cmap_grey_button);
+   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_grey_button, FALSE, FALSE, 0);
+   gtk_tooltips_set_tip(tooltips, pi->cmap_grey_button, _("Grey Colourmap(default)"),
                         NULL);
-   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->cmap_grey_radiobutton), TRUE);
-   gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pi->cmap_grey_radiobutton), FALSE);
 
-   cmap_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(pi->cmap_grey_radiobutton));
+   pi->cmap_hot_button = gtk_button_new_with_label(_("hot"));
+   gtk_widget_show(pi->cmap_hot_button);
+   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_hot_button, FALSE, FALSE, 0);
+   gtk_tooltips_set_tip(tooltips, pi->cmap_hot_button, _("HotMetal Colourmap"), NULL);
 
-   pi->cmap_hot_radiobutton = gtk_radio_button_new_with_label(cmap_group, _("hot"));
-   gtk_widget_show(pi->cmap_hot_radiobutton);
-   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_hot_radiobutton, FALSE, FALSE,
-                      0);
-   gtk_tooltips_set_tip(tooltips, pi->cmap_hot_radiobutton, _("HotMetal Colourmap"),
-                        NULL);
-   gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pi->cmap_hot_radiobutton), FALSE);
+   pi->cmap_spect_button = gtk_button_new_with_label(_("spect"));
+   gtk_widget_show(pi->cmap_spect_button);
+   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_spect_button, FALSE, FALSE, 0);
+   gtk_tooltips_set_tip(tooltips, pi->cmap_spect_button, _("Spectral Colourmap"), NULL);
 
-   pi->cmap_spect_radiobutton = gtk_radio_button_new_with_label(cmap_group, _("spect"));
-   gtk_widget_show(pi->cmap_spect_radiobutton);
-   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_spect_radiobutton, FALSE,
+   pi->cmap_bluered_button = gtk_button_new_with_label(_("bluered"));
+   gtk_widget_show(pi->cmap_bluered_button);
+   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_bluered_button, FALSE,
                       FALSE, 0);
-   gtk_tooltips_set_tip(tooltips, pi->cmap_spect_radiobutton, _("Spectral Colourmap"),
-                        NULL);
-   gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pi->cmap_spect_radiobutton), FALSE);
-
-   pi->cmap_bluered_radiobutton =
-      gtk_radio_button_new_with_label(cmap_group, _("bluered"));
-   gtk_widget_show(pi->cmap_bluered_radiobutton);
-   gtk_box_pack_start(GTK_BOX(pi_cmap_type_hbox), pi->cmap_bluered_radiobutton, FALSE,
-                      FALSE, 0);
-   gtk_tooltips_set_tip(tooltips, pi->cmap_bluered_radiobutton, _("Blue-Red Colourmap"),
-                        NULL);
-   gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(pi->cmap_bluered_radiobutton), FALSE);
+   gtk_tooltips_set_tip(tooltips, pi->cmap_bluered_button, _("Blue-Red Colourmap"), NULL);
 
    pi->cmap_combo = gtk_combo_new();
    gtk_widget_show(pi->cmap_combo);
@@ -1588,7 +1472,6 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    pi_cmap_combo_items = g_list_append(pi_cmap_combo_items, _("HotMetal"));
    pi_cmap_combo_items = g_list_append(pi_cmap_combo_items, _("Spectral"));
    pi_cmap_combo_items = g_list_append(pi_cmap_combo_items, _("BlueRed"));
-   pi_cmap_combo_items = g_list_append(pi_cmap_combo_items, _("Other..."));
    gtk_combo_set_popdown_strings(GTK_COMBO(pi->cmap_combo), pi_cmap_combo_items);
    g_list_free(pi_cmap_combo_items);
 
@@ -1801,67 +1684,19 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
 
       }
 
-   /* signals to callbacks */
+   /* first add signals that don't need blocking */
    g_signal_connect(G_OBJECT(pi_pane_add_button), "clicked",
                     G_CALLBACK(pi_pane_add_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_pane_clone_button), "clicked",
                     G_CALLBACK(pi_pane_clone_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_pane_close_button), "clicked",
                     G_CALLBACK(pi_pane_close_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi_voxel_button), "clicked",
-                    G_CALLBACK(pi_voxel_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi_world_button), "clicked",
-                    G_CALLBACK(pi_world_button_clicked), ptr);
-
-   signal_id = g_signal_connect(G_OBJECT(pi->crosshair_checkbutton), "toggled",
-                                G_CALLBACK(pi_crosshair_checkbutton_toggled), ptr);
-
-   g_array_append_vals(ptr->pane_dialog_signal_ids, &signal_id, 1);
-//   Add each signal id to an array as we add them then add a nice for loop to callbacks.c 
-//   where we block and unblock signals...  Just nicer.
-
-   g_print("Added signal with Id %ld\n", signal_id);
-
-   signal_id = g_signal_connect(G_OBJECT(pi->perspective_checkbutton), "toggled",
-                                G_CALLBACK(pi_perspective_checkbutton_toggled), ptr);
-
-   g_array_append_vals(ptr->pane_dialog_signal_ids, &signal_id, 1);
-//   Add each signal id to an array as we add them then add a nice for loop to callbacks.c 
-//   where we block and unblock signals...  Just nicer.
-
-   g_print("Added signal with Id %ld\n", signal_id);
-
-//   g_print("Signal id's: %d %d\n", &g_array_index(
-
-   g_signal_connect(G_OBJECT(pi->linear_interp_checkbutton), "toggled",
-                    G_CALLBACK(pi_linear_interp_checkbutton_toggled), ptr);
-   g_signal_connect(G_OBJECT(pi->vector_checkbutton), "toggled",
-                    G_CALLBACK(pi_vector_checkbutton_toggled), ptr);
-   g_signal_connect(G_OBJECT(pi->slicebox_checkbutton), "toggled",
-                    G_CALLBACK(pi_slicebox_checkbutton_toggled), ptr);
-   g_signal_connect(G_OBJECT(pi->bbox_checkbutton), "toggled",
-                    G_CALLBACK(pi_bbox_checkbutton_toggled), ptr);
-   g_signal_connect(G_OBJECT(pi->crosshair_spinbutton), "changed",
-                    G_CALLBACK(pi_crosshair_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->view_type_combo_entry), "changed",
-                    G_CALLBACK(pi_view_type_combo_entry_changed), ptr);
    g_signal_connect(G_OBJECT(pi_view_add_button), "clicked",
                     G_CALLBACK(pi_view_add_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_view_close_button), "clicked",
                     G_CALLBACK(pi_view_close_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_view_clone_button), "clicked",
                     G_CALLBACK(pi_view_clone_button_clicked), ptr);
-
-   /* view table */
-   g_signal_connect(G_OBJECT(pi->scale_link_button), "clicked",
-                    G_CALLBACK(pi_scale_link_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->trans_link_button), "clicked",
-                    G_CALLBACK(pi_trans_link_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_link_button), "clicked",
-                    G_CALLBACK(pi_rot_link_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->tilt_link_button), "clicked",
-                    G_CALLBACK(pi_tilt_link_button_clicked), ptr);
-
    g_signal_connect(G_OBJECT(pi_scale_button), "clicked",
                     G_CALLBACK(pi_scale_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_trans_button), "clicked",
@@ -1870,66 +1705,193 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     G_CALLBACK(pi_rot_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi_tilt_button), "clicked",
                     G_CALLBACK(pi_tilt_button_clicked), ptr);
-
-   g_signal_connect(G_OBJECT(pi->scale_spinbutton), "changed",
-                    G_CALLBACK(pi_scale_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->trans_x_spinbutton), "changed",
-                    G_CALLBACK(pi_trans_x_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->trans_y_spinbutton), "changed",
-                    G_CALLBACK(pi_trans_y_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->trans_z_spinbutton), "changed",
-                    G_CALLBACK(pi_trans_z_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_x_spinbutton), "changed",
-                    G_CALLBACK(pi_rot_x_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_y_spinbutton), "changed",
-                    G_CALLBACK(pi_rot_y_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_z_spinbutton), "changed",
-                    G_CALLBACK(pi_rot_z_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_phi_spinbutton), "changed",
-                    G_CALLBACK(pi_rot_phi_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->tilt_x_spinbutton), "changed",
-                    G_CALLBACK(pi_tilt_x_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->tilt_y_spinbutton), "changed",
-                    G_CALLBACK(pi_tilt_y_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->tilt_z_spinbutton), "changed",
-                    G_CALLBACK(pi_tilt_z_spinbutton_changed), ptr);
-
-   g_signal_connect(G_OBJECT(pi->scale_lock_button), "clicked",
-                    G_CALLBACK(pi_scale_lock_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->trans_lock_x_button), "clicked",
-                    G_CALLBACK(pi_trans_lock_x_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->trans_lock_y_button), "clicked",
-                    G_CALLBACK(pi_trans_lock_y_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->trans_lock_z_button), "clicked",
-                    G_CALLBACK(pi_trans_lock_z_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_lock_x_button), "clicked",
-                    G_CALLBACK(pi_rot_lock_x_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_lock_y_button), "clicked",
-                    G_CALLBACK(pi_rot_lock_y_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_lock_z_button), "clicked",
-                    G_CALLBACK(pi_rot_lock_z_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->rot_lock_phi_button), "clicked",
-                    G_CALLBACK(pi_rot_lock_phi_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->tilt_lock_x_button), "clicked",
-                    G_CALLBACK(pi_tilt_lock_x_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->tilt_lock_y_button), "clicked",
-                    G_CALLBACK(pi_tilt_lock_y_button_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->tilt_lock_z_button), "clicked",
-                    G_CALLBACK(pi_tilt_lock_z_button_clicked), ptr);
-
+   
    /* cmap */
    g_signal_connect(G_OBJECT(pi->cmap_alpha_spinbutton), "changed",
                     G_CALLBACK(pi_cmap_alpha_spinbutton_changed), ptr);
-   g_signal_connect(G_OBJECT(pi->cmap_grey_radiobutton), "clicked",
-                    G_CALLBACK(pi_cmap_grey_radiobutton_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->cmap_hot_radiobutton), "clicked",
-                    G_CALLBACK(pi_cmap_hot_radiobutton_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->cmap_spect_radiobutton), "clicked",
-                    G_CALLBACK(pi_cmap_spect_radiobutton_clicked), ptr);
-   g_signal_connect(G_OBJECT(pi->cmap_bluered_radiobutton), "clicked",
-                    G_CALLBACK(pi_cmap_bluered_radiobutton_clicked), ptr);
+   g_signal_connect(G_OBJECT(pi->cmap_grey_button), "clicked",
+                    G_CALLBACK(pi_cmap_grey_button_clicked), ptr);
+   g_signal_connect(G_OBJECT(pi->cmap_hot_button), "clicked",
+                    G_CALLBACK(pi_cmap_hot_button_clicked), ptr);
+   g_signal_connect(G_OBJECT(pi->cmap_spect_button), "clicked",
+                    G_CALLBACK(pi_cmap_spect_button_clicked), ptr);
+   g_signal_connect(G_OBJECT(pi->cmap_bluered_button), "clicked",
+                    G_CALLBACK(pi_cmap_bluered_button_clicked), ptr);
    g_signal_connect(G_OBJECT(pi->cmap_combo_entry), "changed",
                     G_CALLBACK(pi_cmap_combo_entry_changed), ptr);
+   
+   
+   /* connect signals, recording id's as we go so that we can block them later */
+   signal_id = g_signal_connect(G_OBJECT(pi->linear_interp_checkbutton), "toggled",
+                                G_CALLBACK(pi_linear_interp_checkbutton_toggled), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->linear_interp_checkbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->vector_checkbutton), "toggled",
+                                G_CALLBACK(pi_vector_checkbutton_toggled), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->vector_checkbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->perspective_checkbutton), "toggled",
+                                G_CALLBACK(pi_perspective_checkbutton_toggled), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->perspective_checkbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->bbox_checkbutton), "toggled",
+                                G_CALLBACK(pi_bbox_checkbutton_toggled), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->bbox_checkbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->sbox_checkbutton), "toggled",
+                                G_CALLBACK(pi_sbox_checkbutton_toggled), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->sbox_checkbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->crosshair_checkbutton), "toggled",
+                                G_CALLBACK(pi_crosshair_checkbutton_toggled), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->crosshair_checkbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->crosshair_spinbutton), "changed",
+                                G_CALLBACK(pi_crosshair_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->crosshair_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->view_type_combo_entry), "changed",
+                                G_CALLBACK(pi_view_type_combo_entry_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->view_type_combo_entry);
+
+   /* view table */
+   signal_id = g_signal_connect(G_OBJECT(pi->scale_link_button), "clicked",
+                                G_CALLBACK(pi_scale_link_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->scale_link_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->trans_link_button), "clicked",
+                                G_CALLBACK(pi_trans_link_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->trans_link_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_link_button), "clicked",
+                                G_CALLBACK(pi_rot_link_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_link_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->tilt_link_button), "clicked",
+                                G_CALLBACK(pi_tilt_link_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->tilt_link_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->scale_spinbutton), "changed",
+                                G_CALLBACK(pi_scale_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->scale_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->trans_x_spinbutton), "changed",
+                                G_CALLBACK(pi_trans_x_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->trans_x_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->trans_y_spinbutton), "changed",
+                                G_CALLBACK(pi_trans_y_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->trans_y_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->trans_z_spinbutton), "changed",
+                                G_CALLBACK(pi_trans_z_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->trans_z_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_x_spinbutton), "changed",
+                                G_CALLBACK(pi_rot_x_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_x_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_y_spinbutton), "changed",
+                                G_CALLBACK(pi_rot_y_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_y_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_z_spinbutton), "changed",
+                                G_CALLBACK(pi_rot_z_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_z_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_phi_spinbutton), "changed",
+                                G_CALLBACK(pi_rot_phi_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_phi_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->tilt_x_spinbutton), "changed",
+                                G_CALLBACK(pi_tilt_x_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->tilt_x_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->tilt_y_spinbutton), "changed",
+                                G_CALLBACK(pi_tilt_y_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->tilt_y_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->tilt_z_spinbutton), "changed",
+                                G_CALLBACK(pi_tilt_z_spinbutton_changed), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->tilt_z_spinbutton);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->scale_lock_button), "clicked",
+                                G_CALLBACK(pi_scale_lock_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->scale_lock_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->trans_lock_x_button), "clicked",
+                                G_CALLBACK(pi_trans_lock_x_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->trans_lock_x_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->trans_lock_y_button), "clicked",
+                                G_CALLBACK(pi_trans_lock_y_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->trans_lock_y_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->trans_lock_z_button), "clicked",
+                                G_CALLBACK(pi_trans_lock_z_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->trans_lock_z_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_lock_x_button), "clicked",
+                                G_CALLBACK(pi_rot_lock_x_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_lock_x_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_lock_y_button), "clicked",
+                                G_CALLBACK(pi_rot_lock_y_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_lock_y_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_lock_z_button), "clicked",
+                                G_CALLBACK(pi_rot_lock_z_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_lock_z_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->rot_lock_phi_button), "clicked",
+                                G_CALLBACK(pi_rot_lock_phi_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->rot_lock_phi_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->tilt_lock_x_button), "clicked",
+                                G_CALLBACK(pi_tilt_lock_x_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->tilt_lock_x_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->tilt_lock_y_button), "clicked",
+                                G_CALLBACK(pi_tilt_lock_y_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->tilt_lock_y_button);
+
+   signal_id = g_signal_connect(G_OBJECT(pi->tilt_lock_z_button), "clicked",
+                                G_CALLBACK(pi_tilt_lock_z_button_clicked), ptr);
+   g_array_append_val(pi->signal_ids, signal_id);
+   g_ptr_array_add(pi->obj_ptrs, (gpointer)pi->tilt_lock_z_button);
 
    /* vector */
    g_signal_connect(G_OBJECT(pi->vector_colourpicker), "color_changed",

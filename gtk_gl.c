@@ -81,7 +81,6 @@ void configure_gtkgl(Main_info * ptr)
 
 GtkWidget *create_gtkgl_widget(Main_info * ptr, Pane_info pane, View_info view)
 {
-//    int      attrlist[13];
    GtkWidget *gtkgl_widget;
    GtkGL_info *gtkgl_info;
 
@@ -136,7 +135,22 @@ void redraw_pane_view(View_info view)
    gtk_widget_queue_draw(GTK_WIDGET(view->gtkgl_widget));
    }
 
-/* checks is a slice needs re-orienting and calls the re-draw */
+/* convenience fnuction to resize all views in a pane */
+void resize_pane_views(Pane_info pane)
+{
+   int      c;
+
+   for(c = 0; c < pane->views->len; c++){
+      resize_pane_view(g_ptr_array_index(pane->views, c));
+      }
+   }
+
+void resize_pane_view(View_info view)
+{
+   gtk_widget_queue_resize(GTK_WIDGET(view->gtkgl_widget));
+   }
+
+/* checks if a slice needs re-orienting and calls the re-draw */
 void update_slice_tilt(Pane_info pane, View_info view)
 {
    int      view_type;
@@ -175,7 +189,6 @@ void update_slice_tilt(Pane_info pane, View_info view)
       /* force a refresh of the texture map and matricies */
       pane->c_view->reload_texmap = TRUE;
       pane->c_view->reload_cmap = TRUE;
-      pane->c_view->recalc_view = TRUE;
       pane->c_view->refresh_view = TRUE;
       }
 
@@ -657,7 +670,7 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
    Main_info *ptr = get_main_ptr();
    GLdouble tmp_m[4][4];
    GLdouble max_dist = 0.0;
-   GLdouble world_h, world_w, world_b, world_l;
+   GLdouble eye_mult;
    int      c, i;
 
    GdkGLDrawable *gldrawable;
@@ -666,7 +679,9 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
    /* Get pointer to info structs */
    Pane_info pane = ((GtkGL_info *) func_data)->pane;
    View_info view = ((GtkGL_info *) func_data)->view;
-
+   
+//   g_print("GLdraw RT|RI|RC|RV  %d|%d|%d|%d  EC|DRAW  %d|%d\n", view->reload_texmap, view->reload_image, view->reload_cmap, view->refresh_view, event->count, pane->draw);
+   
    /* Draw only on the last expose event. */
    if(event->count > 0){
       return TRUE;
@@ -680,78 +695,51 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
    /* get the current drawable and context and make it current */
    gldrawable = gtk_widget_get_gl_drawable(widget);
    glcontext = gtk_widget_get_gl_context(widget);
-
+   
+   /* glBegin */
    if(!gdk_gl_drawable_gl_begin(gldrawable, glcontext)){
       return FALSE;
       }
-
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-   /* recalculate the model view if needed */
-   if(view->recalc_view){
-
-      /* set up widths and heights */
-      world_w = fabs(pane->stops[view->x_idx] - pane->starts[view->x_idx]);
-      world_h = fabs(pane->stops[view->y_idx] - pane->starts[view->y_idx]);
-
-      world_l = (pane->starts[view->x_idx] < pane->stops[view->x_idx])
-         ? pane->starts[view->x_idx]
-         : pane->stops[view->x_idx];
-
-      world_b = (pane->starts[view->y_idx] < pane->stops[view->y_idx])
-         ? pane->starts[view->y_idx]
-         : pane->stops[view->y_idx];
-
-      /* if height is the limiting direction */
-      if((world_h / view->pix_size[1]) > (world_w / view->pix_size[0])){
-         view->view_start[0] = (view->view_stop[0] * world_l) / world_w;
-         view->view_start[1] = world_b;
-
-         view->view_stop[0] = (view->pix_size[0] * world_h) / view->pix_size[1];
-         view->view_stop[1] = world_h;
-         }
-      else {                           /* width is the limiting direction */
-         view->view_start[0] = world_l;
-         view->view_start[1] = (view->view_stop[1] * world_b) / world_h;
-
-         view->view_stop[0] = world_w;
-         view->view_stop[1] = (view->pix_size[1] * world_w) / view->pix_size[0];
-         }
-      view->view_stop[0] += view->view_start[0];
-      view->view_stop[1] += view->view_start[1];
-      }
 
    /* refresh the view if needed */
    if(view->refresh_view){
       glMatrixMode(GL_PROJECTION);
       glLoadIdentity();
-
-      for(c = 0; c < pane->n_dims; c++){
-         max_dist += SQR(pane->stops[c] - pane->starts[c]);
+      
+      /* set up our viewport centred about the COV of the volume */
+      
+      /* find the max distance from corner to corner */
+      for(c = 0; c < 3; c++){
+         max_dist += SQR2(pane->stops[c] - pane->starts[c]);
          }
       max_dist = sqrt(max_dist);
-
+      
+      /* set up frustum or ortho view */
       if(pane->perspective){
          glFrustum(view->view_start[0], view->view_stop[0],
                    view->view_start[1], view->view_stop[1],
-                   (max_dist * 0.4) * view->GLscalefac,
+                   (max_dist * 0.01) * view->GLscalefac,
                    (max_dist * 2.6) * view->GLscalefac);
          }
       else {
          glOrtho(view->view_start[0], view->view_stop[0],
                  view->view_start[1], view->view_stop[1],
-                 (max_dist * 0.2) * view->GLscalefac,
-                 (max_dist * 2.8) * view->GLscalefac);
+                 0.0,
+                 (max_dist*2 + 1) * view->GLscalefac);
          }
 
-      /* look at the center of the volume */
-      gluLookAt(pane->cov[0],
-                pane->cov[1],
-                pane->cov[2] + ((max_dist * 1.5) * view->GLscalefac),
-                pane->cov[0], pane->cov[1], pane->cov[2], 0, 1, 0);
-
-      /* move back to the middle */
-      glTranslated(pane->cov[0], pane->cov[1], pane->cov[2]);
+      /* Look at the COV */
+    //  gluLookAt(pane->cov[0],
+    //            pane->cov[1],
+    //            (pane->cov[2] + max_dist) * view->GLscalefac,
+    //            pane->cov[0], pane->cov[1], pane->cov[2], 
+    //            0, 1, 0);
+      gluLookAt(0,
+                0,
+                (0 + max_dist) * view->GLscalefac,
+                0, 0, 0, 
+                0, 1, 0);
 
       //glTranslated(-pane->w[0], -pane->w[1], -pane->w[2]);
       //build_rotmatrix(tmp_m, view->rot_quat);
@@ -900,11 +888,10 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
       }
 
    glPopMatrix();
+   gdk_gl_drawable_gl_end(gldrawable);
 
    /* Swap buffers. */
    gdk_gl_drawable_swap_buffers(gldrawable);
-
-   gdk_gl_drawable_gl_end(gldrawable);
 
    /* increment the draw count */
    ptr->draw_count++;
@@ -916,11 +903,13 @@ gint gtkgl_reshape(GtkWidget * widget, GdkEventConfigure * event, gpointer func_
 {
    GdkGLDrawable *gldrawable;
    GdkGLContext *glcontext;
+   GLdouble world_h, world_w, world_b, world_l;
+   GLdouble tmp;
 
    /* Get pointer to gtkgl_info */
    Pane_info pane = ((GtkGL_info *) func_data)->pane;
    View_info view = ((GtkGL_info *) func_data)->view;
-
+   
    /* if we don't have to draw this pane, return early */
    if(!pane->draw){
       return TRUE;
@@ -929,10 +918,10 @@ gint gtkgl_reshape(GtkWidget * widget, GdkEventConfigure * event, gpointer func_
    /* get the current drawable and context and make it current */
    gldrawable = gtk_widget_get_gl_drawable(widget);
    glcontext = gtk_widget_get_gl_context(widget);
-
+   
+   /* glBegin */
    if(!gdk_gl_drawable_gl_begin(gldrawable, glcontext)){
-      return FALSE;
-      }
+      return FALSE;      }
 
    view->pix_size[0] = (double)widget->allocation.width;
    view->pix_size[1] = (double)widget->allocation.height;
@@ -940,10 +929,47 @@ gint gtkgl_reshape(GtkWidget * widget, GdkEventConfigure * event, gpointer func_
    /* setup the viewport */
    glViewport(0, 0, (GLint) view->pix_size[0], (GLint) view->pix_size[1]);
    glGetIntegerv(GL_VIEWPORT, view->viewport);
+   
+   /* set up widths and heights for main drawwing callback */
+   world_w = fabs(pane->stops[view->x_idx] - pane->starts[view->x_idx]);
+   world_h = fabs(pane->stops[view->y_idx] - pane->starts[view->y_idx]);
 
-   view->refresh_view = TRUE;
+   world_l = (pane->starts[view->x_idx] < pane->stops[view->x_idx])
+      ? pane->starts[view->x_idx]
+      : pane->stops[view->x_idx];
 
+   world_b = (pane->starts[view->y_idx] < pane->stops[view->y_idx])
+      ? pane->starts[view->y_idx]
+      : pane->stops[view->y_idx];
+
+   /* if height is the limiting direction */
+   if((world_h / view->pix_size[1]) > (world_w / view->pix_size[0])){
+      view->view_start[1] = world_b;
+      view->view_stop[1] = world_b + world_h;
+      
+      /* get the scaled width about the COV */
+      tmp = (view->pix_size[0] * world_h) / view->pix_size[1];
+      view->view_start[0] = pane->cov[view->x_idx] - tmp/2;
+      view->view_stop[0] = view->view_start[0] + tmp;
+      }
+   else {                           /* width is the limiting direction */
+      view->view_start[0] = world_l;
+      view->view_stop[0] = world_l + world_w;
+      
+      /* get the scaled height about the COV */
+      tmp = (view->pix_size[1] * world_w) / view->pix_size[0];
+      view->view_start[1] = pane->cov[view->y_idx] - tmp/2;
+      view->view_stop[1] = view->view_start[1] + tmp;
+      }
+   
+//   g_print("+++ PIX_SIZE[0|1] %g|%g\n", view->pix_size[0], view->pix_size[1]);
+   g_print("+++ TYPE[%d]  world_{w|h|l|b} %g|%g|%g|%g  tmp: %g\n", view->type, world_w, world_h, world_l, world_b, tmp); 
+   g_print("+++ view_start|stop[0] %g|%g  view_start|stop[1] %g|%g\n", view->view_start[0], view->view_stop[0], view->view_start[1], view->view_stop[1]); 
+   
+   /* glEnd */
    gdk_gl_drawable_gl_end(gldrawable);
+   
+   view->refresh_view = TRUE;
    return TRUE;
    }
 
@@ -956,7 +982,7 @@ gint gtkgl_init(GtkWidget * widget, gpointer func_data)
    /* Get pointer to gtkgl_info */
    Pane_info pane = ((GtkGL_info *) func_data)->pane;
    View_info view = ((GtkGL_info *) func_data)->view;
-
+   
    /* get the current drawable and context and make it current */
    gldrawable = gtk_widget_get_gl_drawable(widget);
    glcontext = gtk_widget_get_gl_context(widget);
@@ -1015,7 +1041,7 @@ void draw_vector_slice(Pane_info pane, View_info view)
    glPointSize(1.0);
    glLineWidth(0.8);
 
-   euc_max = sqrt(3 * SQR(pane->pane_max - pane->pane_min)) / 2.0;
+   euc_max = sqrt(3 * SQR2(pane->pane_max - pane->pane_min)) / 2.0;
 
    v[view->z_idx] = (int)pane->v[view->z_idx];
    w[view->z_idx] = pane->w[view->z_idx];
@@ -1035,7 +1061,7 @@ void draw_vector_slice(Pane_info pane, View_info view)
             dw[1] = w[1] + (dy * pane->vect_mult);
             dw[2] = w[2] + (dz * pane->vect_mult);
 
-            euc = sqrt(SQR(dx) * SQR(dy) * SQR(dz));
+            euc = sqrt(SQR2(dx) * SQR2(dy) * SQR2(dz));
             if((euc > pane->vect_floor) && (euc < pane->vect_ceil)){
 
                if(pane->vect_points){

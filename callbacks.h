@@ -40,7 +40,8 @@ void     synch_activate(GtkMenuItem * menuitem, gpointer user_data);
 void     left_button_clicked(GtkButton * button, gpointer user_data);
 void     right_button_clicked(GtkButton * button, gpointer user_data);
 void     sync_button_clicked(GtkButton * button, gpointer user_data);
-void     coord_button_clicked(GtkButton * button, gpointer user_data);
+void     coord_reset_button_clicked(GtkButton * button, gpointer user_data);
+void     coord_type_button_clicked(GtkButton * button, gpointer user_data);
 void     vox_value_button_clicked(GtkButton * button, gpointer user_data);
 void     vx_coord_changed(GtkEditable * editable, gpointer user_data);
 void     vy_coord_changed(GtkEditable * editable, gpointer user_data);
@@ -52,10 +53,10 @@ void     wz_coord_changed(GtkEditable * editable, gpointer user_data);
 void     wt_coord_changed(GtkEditable * editable, gpointer user_data);
 void     range_min_val_changed(GtkEditable * editable, gpointer user_data);
 void     range_max_val_changed(GtkEditable * editable, gpointer user_data);
-void     cmap_grey_radio_clicked(GtkButton * button, gpointer user_data);
-void     cmap_hot_radio_clicked(GtkButton * button, gpointer user_data);
-void     cmap_spect_radio_clicked(GtkButton * button, gpointer user_data);
-void     cmap_bluered_radio_clicked(GtkButton * button, gpointer user_data);
+void     cmap_grey_button_clicked(GtkButton * button, gpointer user_data);
+void     cmap_hot_button_clicked(GtkButton * button, gpointer user_data);
+void     cmap_spect_button_clicked(GtkButton * button, gpointer user_data);
+void     cmap_bluered_button_clicked(GtkButton * button, gpointer user_data);
 void     cmap_combo_entry_changed(GtkEditable * editable, gpointer user_data);
 void     file_open_entry_activate(GtkEntry * entry, gpointer user_data);
 
@@ -93,8 +94,6 @@ void     pi_pane_add_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_pane_close_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_pane_clone_button_clicked(GtkButton * button, gpointer user_data);
 
-void     pi_voxel_button_clicked(GtkButton * button, gpointer user_data);
-void     pi_world_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_scale_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_trans_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_rot_button_clicked(GtkButton * button, gpointer user_data);
@@ -135,11 +134,10 @@ void     pi_tilt_x_spinbutton_changed(GtkEditable * editable, gpointer user_data
 void     pi_tilt_y_spinbutton_changed(GtkEditable * editable, gpointer user_data);
 void     pi_tilt_z_spinbutton_changed(GtkEditable * editable, gpointer user_data);
 
-void     pi_cmap_grey_radiobutton_clicked(GtkButton * button, gpointer user_data);
-void     pi_cmap_hot_radiobutton_clicked(GtkButton * button, gpointer user_data);
-void     pi_cmap_spect_radiobutton_clicked(GtkButton * button, gpointer user_data);
-void     pi_cmap_bluered_radiobutton_clicked(GtkButton * button, gpointer user_data);
-void     pi_cmap_reload_button_clicked(GtkButton * button, gpointer user_data);
+void     pi_cmap_grey_button_clicked(GtkButton * button, gpointer user_data);
+void     pi_cmap_hot_button_clicked(GtkButton * button, gpointer user_data);
+void     pi_cmap_spect_button_clicked(GtkButton * button, gpointer user_data);
+void     pi_cmap_bluered_button_clicked(GtkButton * button, gpointer user_data);
 void     pi_cmap_combo_entry_changed(GtkEditable * editable, gpointer user_data);
 void     pi_cmap_alpha_spinbutton_changed(GtkEditable * editable, gpointer user_data);
 
@@ -169,7 +167,7 @@ void     pi_linear_interp_checkbutton_toggled(GtkToggleButton * togglebutton,
                                               gpointer user_data);
 void     pi_perspective_checkbutton_toggled(GtkToggleButton * togglebutton,
                                             gpointer user_data);
-void     pi_slicebox_checkbutton_toggled(GtkToggleButton * togglebutton,
+void     pi_sbox_checkbutton_toggled(GtkToggleButton * togglebutton,
                                          gpointer user_data);
 void     pi_vector_checkbutton_toggled(GtkToggleButton * togglebutton,
                                        gpointer user_data);

@@ -1,4 +1,4 @@
-/* callbacks.c */
+		/* callbacks.c */
 
 #include "callbacks.h"
 #include <math.h>
@@ -14,7 +14,6 @@
 extern int verbose;
 
 /* internal function prototypes */
-int      init_coord_ranges(Pane_info pane);
 void     assign_coord_adjustments(Pane_info pane);
 void     update_pane_and_filename(Pane_info pane);
 void     show_hide_coord_spins(Pane_info pane);
@@ -69,7 +68,9 @@ void make_pane_active(Pane_info pane)
 {
    Main_info *ptr = get_main_ptr();
    Pane_dialog *pi = ptr->pane_dialog;
-
+   
+   int i;
+   
    if(pane != ptr->c_pane){
 
       /* update pane styles, new then fix up old */
@@ -80,49 +81,18 @@ void make_pane_active(Pane_info pane)
 //         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->eventbox_label), NULL);
 //         }
 
-      /* change coordinate adjustments and values */
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->wx_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_wx_adj));
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->wy_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_wy_adj));
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->wz_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_wz_adj));
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->wt_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_wt_adj));
-
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->vx_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_vx_adj));
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->vy_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_vy_adj));
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->vz_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_vz_adj));
-      gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->vt_spinbutton),
-                                     GTK_ADJUSTMENT(pane->coord_vt_adj));
-
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_vx_adj));
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_vy_adj));
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_vz_adj));
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_vt_adj));
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_wx_adj));
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_wy_adj));
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_wz_adj));
-      gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->coord_wt_adj));
-
-      /* Views frame */
-      g_signal_handlers_block_by_func(G_OBJECT(pi->linear_interp_checkbutton),
-                                      G_CALLBACK(pi_linear_interp_checkbutton_toggled),
-                                      ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->vector_checkbutton), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->perspective_checkbutton), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->bbox_checkbutton), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->slicebox_checkbutton), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->crosshair_checkbutton), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->crosshair_spinbutton), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->scale_link_button), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_link_button), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->trans_link_button), ptr);
-      gtk_signal_handler_block_by_data(GTK_OBJECT(pi->tilt_link_button), ptr);
-
+      /* sanity check first */
+      if(pi->signal_ids->len != pi->obj_ptrs->len){
+         g_error("Arrgh pi->signal_ids->len (%d) != pi->obj_ptrs->len (%d)\n", pi->signal_ids->len, pi->obj_ptrs->len);
+         }
+      
+      /* block all the signals we need to */
+      for(i=0; i<pi->signal_ids->len; i++){
+         g_signal_handler_block(g_ptr_array_index(pi->obj_ptrs, i), 
+                                g_array_index(pi->signal_ids, gulong, i));
+         }
+      
+      /* update widget values */
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->linear_interp_checkbutton),
                                    pane->linear_interp);
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->vector_checkbutton),
@@ -131,7 +101,7 @@ void make_pane_active(Pane_info pane)
                                    pane->perspective);
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->bbox_checkbutton),
                                    pane->bounding_box);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->slicebox_checkbutton),
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->sbox_checkbutton),
                                    pane->slice_box);
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->crosshair_checkbutton),
                                    pane->crosshair);
@@ -148,17 +118,11 @@ void make_pane_active(Pane_info pane)
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->tilt_link_button),
                                    pane->link_tilts);
 
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->perspective_checkbutton), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->vector_checkbutton), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->slicebox_checkbutton), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->linear_interp_checkbutton), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->bbox_checkbutton), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->crosshair_checkbutton), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->scale_link_button), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->trans_link_button), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_link_button), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_link_button), ptr);
-      gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->crosshair_spinbutton), ptr);
+      /* then unblock */
+      for(i=0; i<pi->signal_ids->len; i++){
+         g_signal_handler_unblock(g_ptr_array_index(pi->obj_ptrs, i), 
+                                g_array_index(pi->signal_ids, gulong, i));
+         }
 
       /* make the panes current view active */
       if(pane->c_view != NULL){
@@ -222,6 +186,7 @@ void make_view_active(Pane_info pane, View_info view)
 {
    Main_info *ptr = get_main_ptr();
    Pane_dialog *pi = ptr->pane_dialog;
+   int i;
 
    /* change styles if we have to */
    if(view != pane->c_view){
@@ -234,30 +199,11 @@ void make_view_active(Pane_info pane, View_info view)
          }
       }
 
-   /* block pertinent callbacks */
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->view_type_combo_entry), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->scale_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->trans_x_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->trans_y_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->trans_z_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_x_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_y_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_z_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_phi_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->tilt_x_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->tilt_y_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->tilt_z_spinbutton), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->scale_lock_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->trans_lock_x_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->trans_lock_y_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->trans_lock_z_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_lock_x_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_lock_y_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_lock_z_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->rot_lock_phi_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->tilt_lock_x_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->tilt_lock_y_button), ptr);
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pi->tilt_lock_z_button), ptr);
+   /* block all the signals we need to */
+   for(i=0; i<pi->signal_ids->len; i++){
+      g_signal_handler_block(g_ptr_array_index(pi->obj_ptrs, i), 
+                             g_array_index(pi->signal_ids, gulong, i));
+      }
 
    /* view and view-type combos */
    switch (view->type){
@@ -312,29 +258,10 @@ void make_view_active(Pane_info pane, View_info view)
                                 view->lock_z_tilt);
 
    /* then unblock */
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->view_type_combo_entry), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->scale_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->trans_x_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->trans_y_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->trans_z_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_x_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_y_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_z_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_phi_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_x_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_y_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_z_spinbutton), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->scale_lock_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->trans_lock_x_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->trans_lock_y_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->trans_lock_z_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_lock_x_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_lock_y_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_lock_z_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->rot_lock_phi_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_lock_x_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_lock_y_button), ptr);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pi->tilt_lock_z_button), ptr);
+   for(i=0; i<pi->signal_ids->len; i++){
+      g_signal_handler_unblock(g_ptr_array_index(pi->obj_ptrs, i), 
+                               g_array_index(pi->signal_ids, gulong, i));
+      }
 
    pane->c_view = view;
    }
@@ -430,15 +357,26 @@ int update_ranges(Pane_info pane)
 /* set the coordinate values */
 void update_coord_values(Pane_info pane)
 {
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wx), pane->w[0]);
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wy), pane->w[1]);
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wz), pane->w[2]);
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wt), pane->w[3]);
+   /* update values only if we have to */
+   if(pane->w[0] != (double)GTK_ADJUSTMENT(pane->coord_wx_adj)->value){   
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wx), pane->w[0]);
+      }
+   
+   if(pane->w[1] != (double)GTK_ADJUSTMENT(pane->coord_wy_adj)->value){
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wy), pane->w[1]);
+      }
+   
+   if(pane->w[2] != (double)GTK_ADJUSTMENT(pane->coord_wz_adj)->value){
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wz), pane->w[2]);
+      }
+   
+   if(pane->w[3] != (double)GTK_ADJUSTMENT(pane->coord_wt_adj)->value){
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wt), pane->w[3]);
+      }
    }
 
 void assign_coord_adjustments(Pane_info pane)
 {
-
    gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pane->coord_vx),
                                   GTK_ADJUSTMENT(pane->coord_vx_adj));
    gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pane->coord_vy),
@@ -460,7 +398,6 @@ void assign_coord_adjustments(Pane_info pane)
 
 void show_hide_coord_spins(Pane_info pane)
 {
-
    if(pane->use_vox_coords){
       gtk_widget_show(pane->coord_vx);
       gtk_widget_show(pane->coord_vy);
@@ -483,68 +420,6 @@ void show_hide_coord_spins(Pane_info pane)
       gtk_widget_hide(pane->coord_vz);
       gtk_widget_hide(pane->coord_vt);
       }
-   }
-
-/* set the coordinate ranges */
-int init_coord_ranges(Pane_info pane)
-{
-   GtkAdjustment *vx_adj = GTK_ADJUSTMENT(pane->coord_vx_adj);
-   GtkAdjustment *vy_adj = GTK_ADJUSTMENT(pane->coord_vy_adj);
-   GtkAdjustment *vz_adj = GTK_ADJUSTMENT(pane->coord_vz_adj);
-   GtkAdjustment *vt_adj = GTK_ADJUSTMENT(pane->coord_vt_adj);
-
-   GtkAdjustment *wx_adj = GTK_ADJUSTMENT(pane->coord_wx_adj);
-   GtkAdjustment *wy_adj = GTK_ADJUSTMENT(pane->coord_wy_adj);
-   GtkAdjustment *wz_adj = GTK_ADJUSTMENT(pane->coord_wz_adj);
-   GtkAdjustment *wt_adj = GTK_ADJUSTMENT(pane->coord_wt_adj);
-
-   vx_adj->lower = 0;
-   vx_adj->upper = pane->sizes[0] - 1;
-   vy_adj->lower = 0;
-   vy_adj->upper = pane->sizes[1] - 1;
-   vz_adj->lower = 0;
-   vz_adj->upper = pane->sizes[2] - 1;
-   vt_adj->lower = 0;
-   vt_adj->upper = pane->sizes[3] - 1;
-
-   if(pane->starts[0] < pane->stops[0]){
-      wx_adj->lower = pane->starts[0];
-      wx_adj->upper = pane->stops[0];
-      }
-   else {
-      wx_adj->upper = pane->starts[0];
-      wx_adj->lower = pane->stops[0];
-      }
-
-   if(pane->starts[1] < pane->stops[1]){
-      wy_adj->lower = pane->starts[1];
-      wy_adj->upper = pane->stops[1];
-      }
-   else {
-      wy_adj->upper = pane->starts[1];
-      wy_adj->lower = pane->stops[1];
-      }
-
-   if(pane->starts[2] < pane->stops[2]){
-      wz_adj->lower = pane->starts[2];
-      wz_adj->upper = pane->stops[2];
-      }
-   else {
-      wz_adj->upper = pane->starts[2];
-      wz_adj->lower = pane->stops[2];
-      }
-
-   if(pane->starts[3] < pane->stops[3]){
-      wt_adj->lower = pane->starts[3];
-      wt_adj->upper = pane->stops[3];
-      }
-   else {
-      wt_adj->upper = pane->starts[3];
-      wt_adj->lower = pane->stops[3];
-      }
-
-   assign_coord_adjustments(pane);
-   return TRUE;
    }
 
 /* update the voxel value entry widget */
@@ -582,7 +457,6 @@ void update_synch_button(Main_info * ptr, Pane_info pane)
       sprintf(synch_text, "S:-");
 
       assign_coord_adjustments(pane);
-      update_coord_values(pane);
       }
 
    else {
@@ -943,13 +817,30 @@ void vox_value_button_clicked(GtkButton * button, gpointer user_data)
 
 /* Coordinates stuff */
 /* co-ordinate button and spinbuttons */
-void coord_button_clicked(GtkButton * button, gpointer user_data)
+void coord_reset_button_clicked(GtkButton * button, gpointer user_data)
+{
+   Pane_info pane = (Pane_info) user_data;
+   
+   if(pane->use_vox_coords){
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wx), pane->cov[0]);
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wy), pane->cov[1]);
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wz), pane->cov[2]);
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wt), pane->cov[3]);
+      }
+   else {
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wx), 0.0);
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wy), 0.0);
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wz), 0.0);
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wt), 0.0);
+      }
+   }
+
+void coord_type_button_clicked(GtkButton * button, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
    if(pane->use_vox_coords){
       gtk_button_set_label(GTK_BUTTON(button), "W:");
-
       pane->use_vox_coords = FALSE;
       }
    else {
@@ -1140,19 +1031,71 @@ void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
    g_string_sprintf(pane->file_name, "%s", text);
    g_string_sprintf(pane->file_basename, "%s", g_basename(text));
    update_pane_and_filename(pane);
-
+   
    /* set up coordinate ranges and values */
-   init_coord_ranges(pane);
-   for(c = 0; c < MAX_VNUP_DIMS; c++){
-      pane->v[c] = (double)(pane->sizes[c] - 1) / 2.0;
+   GTK_ADJUSTMENT(pane->coord_vx_adj)->lower = 0;
+   GTK_ADJUSTMENT(pane->coord_vx_adj)->upper = pane->sizes[0] - 1;
+   GTK_ADJUSTMENT(pane->coord_vy_adj)->lower = 0;
+   GTK_ADJUSTMENT(pane->coord_vy_adj)->upper = pane->sizes[1] - 1;
+   GTK_ADJUSTMENT(pane->coord_vz_adj)->lower = 0;
+   GTK_ADJUSTMENT(pane->coord_vz_adj)->upper = pane->sizes[2] - 1;
+   GTK_ADJUSTMENT(pane->coord_vt_adj)->lower = 0;
+   GTK_ADJUSTMENT(pane->coord_vt_adj)->upper = pane->sizes[3] - 1;
+
+   if(pane->starts[0] < pane->stops[0]){
+      GTK_ADJUSTMENT(pane->coord_wx_adj)->lower = pane->starts[0];
+      GTK_ADJUSTMENT(pane->coord_wx_adj)->upper = pane->stops[0];
+      }
+   else {
+      GTK_ADJUSTMENT(pane->coord_wx_adj)->upper = pane->starts[0];
+      GTK_ADJUSTMENT(pane->coord_wx_adj)->lower = pane->stops[0];
       }
 
+   if(pane->starts[1] < pane->stops[1]){
+      GTK_ADJUSTMENT(pane->coord_wy_adj)->lower = pane->starts[1];
+      GTK_ADJUSTMENT(pane->coord_wy_adj)->upper = pane->stops[1];
+      }
+   else {
+      GTK_ADJUSTMENT(pane->coord_wy_adj)->lower = pane->stops[1];
+      GTK_ADJUSTMENT(pane->coord_wy_adj)->upper = pane->starts[1];
+      }
+
+   if(pane->starts[2] < pane->stops[2]){
+      GTK_ADJUSTMENT(pane->coord_wz_adj)->lower = pane->starts[2];
+      GTK_ADJUSTMENT(pane->coord_wz_adj)->upper = pane->stops[2];
+      }
+   else {
+      GTK_ADJUSTMENT(pane->coord_wz_adj)->lower = pane->stops[2];
+      GTK_ADJUSTMENT(pane->coord_wz_adj)->upper = pane->starts[2];
+      }
+
+   if(pane->starts[3] < pane->stops[3]){
+      GTK_ADJUSTMENT(pane->coord_wt_adj)->lower = pane->starts[3];
+      GTK_ADJUSTMENT(pane->coord_wt_adj)->upper = pane->stops[3];
+      }
+   else {
+      GTK_ADJUSTMENT(pane->coord_wt_adj)->lower = pane->stops[3];
+      GTK_ADJUSTMENT(pane->coord_wt_adj)->upper = pane->starts[3];
+      }
+   assign_coord_adjustments(pane);
+   update_ranges(pane);
+   
+   /* now set up initial position in volume to COV */
+   for(c = 0; c < MAX_VNUP_DIMS; c++){
+      if(pane->sizes[c] == 0){
+         pane->v[c] = 0.0;
+         }
+      else{
+         pane->v[c] = (double)(pane->sizes[c] - 1) / 2.0;
+         }
+      }
    update_world_from_voxel(pane);
+   update_coord_values(pane);
+   
+   /* store this (world) position for future use */
    for(c = 0; c < MAX_VNUP_DIMS; c++){
       pane->cov[c] = pane->w[c];
       }
-
-   update_coord_values(pane);
 
    /* set up it's colormap with the new files range */
    if(pane->cmap_ptr == NULL){
@@ -1163,21 +1106,19 @@ void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
       push_statusbar(ptr, buf, 1);
       return;
       }
-   update_ranges(pane);
 
    /* associate the pane with a synch */
    update_synch_button(ptr, pane);
-
+   
    /* refresh OpenGL windows and reload texmaps */
    pane->draw = TRUE;
    for(c = 0; c < pane->views->len; c++){
       view = g_ptr_array_index(pane->views, c);
       view->reload_texmap = TRUE;
-      view->reload_image = TRUE;
       view->reload_cmap = TRUE;
-      view->refresh_view = TRUE;
       }
-
+   resize_pane_views(pane);
+   
    /* continue to load it updating as we go if we need to.. */
    if(pane->perc_input != 1.0){
       while(continue_open_minc_file_to_pane(pane)){
@@ -1251,7 +1192,7 @@ void range_max_val_changed(GtkEditable * editable, gpointer user_data)
    }
 
 /* grey colour map button */
-void cmap_grey_radio_clicked(GtkButton * button, gpointer user_data)
+void cmap_grey_button_clicked(GtkButton * button, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1259,7 +1200,7 @@ void cmap_grey_radio_clicked(GtkButton * button, gpointer user_data)
    }
 
 /* spect colour map button */
-void cmap_spect_radio_clicked(GtkButton * button, gpointer user_data)
+void cmap_spect_button_clicked(GtkButton * button, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1267,7 +1208,7 @@ void cmap_spect_radio_clicked(GtkButton * button, gpointer user_data)
    }
 
 /* hot colour map button */
-void cmap_hot_radio_clicked(GtkButton * button, gpointer user_data)
+void cmap_hot_button_clicked(GtkButton * button, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1275,7 +1216,7 @@ void cmap_hot_radio_clicked(GtkButton * button, gpointer user_data)
    }
 
 /* bluered colour map button */
-void cmap_bluered_radio_clicked(GtkButton * button, gpointer user_data)
+void cmap_bluered_button_clicked(GtkButton * button, gpointer user_data)
 {
    Pane_info pane = (Pane_info) user_data;
 
@@ -1511,29 +1452,6 @@ void pi_pane_close_button_clicked(GtkButton * button, gpointer user_data)
 
    }
 
-/* buttons to reset coordinates */
-void pi_voxel_button_clicked(GtkButton * button, gpointer user_data)
-{
-   Pane_info pane = ((Main_info *) user_data)->c_pane;
-
-   pane->w[0] = pane->cov[0];
-   pane->w[1] = pane->cov[1];
-   pane->w[2] = pane->cov[2];
-   pane->w[3] = pane->cov[3];
-   update_coord_values(pane);
-   }
-
-void pi_world_button_clicked(GtkButton * button, gpointer user_data)
-{
-   Pane_info pane = ((Main_info *) user_data)->c_pane;
-
-   pane->w[0] = 0.0;
-   pane->w[1] = 0.0;
-   pane->w[2] = 0.0;
-   pane->w[3] = 0.0;
-   update_coord_values(pane);
-   }
-
 /* pane togglebuttons */
 void pi_linear_interp_checkbutton_toggled(GtkToggleButton * togglebutton,
                                           gpointer user_data)
@@ -1589,7 +1507,7 @@ void pi_vector_checkbutton_toggled(GtkToggleButton * togglebutton, gpointer user
    redraw_pane_views(ptr->c_pane);
    }
 
-void pi_slicebox_checkbutton_toggled(GtkToggleButton * togglebutton, gpointer user_data)
+void pi_sbox_checkbutton_toggled(GtkToggleButton * togglebutton, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
 
@@ -1636,8 +1554,9 @@ void pi_view_type_combo_entry_changed(GtkEditable * editable, gpointer user_data
    view->reload_image = TRUE;
    view->reload_cmap = TRUE;
    view->refresh_view = TRUE;
-   view->recalc_view = TRUE;
-
+   
+   // trigger glreshape callback
+   
    init_tilt_vec(view);
    init_view_idx(view);
    init_rot_vec(view);
@@ -1941,31 +1860,27 @@ void pi_tilt_lock_z_button_clicked(GtkButton * button, gpointer user_data)
    }
 
 /* cmap */
-void pi_cmap_grey_radiobutton_clicked(GtkButton * button, gpointer user_data)
+void pi_cmap_grey_button_clicked(GtkButton * button, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
-
    gtk_entry_set_text(GTK_ENTRY(ptr->pane_dialog->cmap_combo_entry), "grey");
    }
 
-void pi_cmap_hot_radiobutton_clicked(GtkButton * button, gpointer user_data)
+void pi_cmap_hot_button_clicked(GtkButton * button, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
-
    gtk_entry_set_text(GTK_ENTRY(ptr->pane_dialog->cmap_combo_entry), "hotmetal");
    }
 
-void pi_cmap_spect_radiobutton_clicked(GtkButton * button, gpointer user_data)
+void pi_cmap_spect_button_clicked(GtkButton * button, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
-
    gtk_entry_set_text(GTK_ENTRY(ptr->pane_dialog->cmap_combo_entry), "spectral");
    }
 
-void pi_cmap_bluered_radiobutton_clicked(GtkButton * button, gpointer user_data)
+void pi_cmap_bluered_button_clicked(GtkButton * button, gpointer user_data)
 {
    Main_info *ptr = (Main_info *) user_data;
-
    gtk_entry_set_text(GTK_ENTRY(ptr->pane_dialog->cmap_combo_entry), "bluered");
    }
 
@@ -1976,12 +1891,6 @@ void pi_cmap_combo_entry_changed(GtkEditable * editable, gpointer user_data)
 
    text = gtk_entry_get_text(GTK_ENTRY(editable));
    gtk_entry_set_text(GTK_ENTRY(ptr->c_pane->cmap_combo_entry), text);
-   }
-
-void pi_cmap_reload_button_clicked(GtkButton * button, gpointer user_data)
-{
-//   Main_info *ptr = (Main_info *) user_data;
-
    }
 
 void pi_cmap_alpha_spinbutton_changed(GtkEditable * editable, gpointer user_data)
