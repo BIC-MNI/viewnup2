@@ -129,8 +129,14 @@ Main_info *init_main_info(int init_synch_idx, int transverse, int sagittal, int 
    ptr->pane_dialog->obj_ptrs = g_ptr_array_new();
 
    /* initialise highlight and normal styles */
-// very likely not needed now
-   init_highlight_styles(ptr);
+   ptr->drk_blue.pixel = 0;
+   ptr->drk_blue.red = 0;
+   ptr->drk_blue.green = 2560;
+   ptr->drk_blue.blue = 20480;
+   ptr->green.pixel = 0;
+   ptr->green.red = 0;
+   ptr->green.green = 65535;
+   ptr->green.blue = 0;
 
    /* setup tooltips */
    ptr->tooltips = gtk_tooltips_new();

@@ -80,7 +80,6 @@ void create_view_widgets(Main_info * ptr, Pane_info pane, View_info view)
    gtk_widget_show(view->view_frame);
    gtk_box_pack_start(GTK_BOX(pane->vbox_img), view->view_frame, TRUE, TRUE, 0);
    gtk_frame_set_shadow_type(GTK_FRAME(view->view_frame), GTK_SHADOW_ETCHED_IN);
-   gtk_widget_set_style(GTK_WIDGET(view->view_frame), ptr->view_normal_style);
 
    view->gtkgl_widget = create_gtkgl_widget(ptr, pane, view);
    gtk_widget_show(view->gtkgl_widget);
@@ -103,11 +102,16 @@ void delete_pane_widgets(Main_info * ptr, Pane_info pane)
 void create_pane_widgets(Main_info * ptr, Pane_info pane)
 {
    GtkWidget *hbox_value_cmap;
-
+   
+   pane->pane_frame = gtk_frame_new(NULL);
+   gtk_widget_show(pane->pane_frame);
+   gtk_box_pack_start(GTK_BOX(ptr->pane_hbody), pane->pane_frame, TRUE, TRUE, 0);
+   gtk_frame_set_shadow_type(GTK_FRAME(pane->pane_frame), GTK_SHADOW_ETCHED_IN);
+   
    pane->hbox_pane = gtk_hbox_new(FALSE, 0);
    gtk_widget_show(pane->hbox_pane);
-   gtk_box_pack_start(GTK_BOX(ptr->pane_hbody), pane->hbox_pane, TRUE, TRUE, 0);
-
+   gtk_container_add(GTK_CONTAINER(pane->pane_frame), pane->hbox_pane);
+   
    pane->vbox_pane = gtk_vbox_new(FALSE, 0);
    gtk_widget_show(pane->vbox_pane);
    gtk_box_pack_start(GTK_BOX(pane->hbox_pane), pane->vbox_pane, TRUE, TRUE, 0);

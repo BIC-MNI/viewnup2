@@ -6,12 +6,11 @@
 #include "globals.h"
 
 /* convenience functions */
-void     init_highlight_styles(Main_info * ptr);
 void     update_coord_values(Pane_info pane);
 void     make_pane_active(Pane_info pane);
 void     make_view_active(Pane_info pane, View_info view);
 Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge);
-void     push_statusbar(Main_info * ptr, char *buf, int highlight);
+void     push_statusbar(Main_info * ptr, char *buf);
 void     update_synch_button(Main_info * ptr, Pane_info pane);
 
 /* pane_info dialog convenience functions */

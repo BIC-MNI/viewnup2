@@ -67,7 +67,7 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
    /* check that we found one */
    if(axis_order_ptr == NULL){
       g_snprintf(buf, 128, "Unable to find an approriate axis ordering");
-      push_statusbar(NULL, buf, 1);
+      push_statusbar(NULL, buf);
       return FALSE;
       }
 
@@ -78,7 +78,7 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
    if(strcmp(filename, pane->file_name->str) == 0){
       g_snprintf(buf, 128, "loading %s range [%g:%g]", filename,
                  pane->pane_min_value, pane->pane_max_value);
-      push_statusbar(NULL, buf, 1);
+      push_statusbar(NULL, buf);
 
       set_minc_input_user_real_range(&options,
                                      pane->pane_min_value, pane->pane_max_value);

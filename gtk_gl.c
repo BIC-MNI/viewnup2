@@ -383,7 +383,7 @@ gint gtkgl_button_release(GtkWidget * widget, GdkEventButton * event, gpointer f
    g_snprintf(buf, 128, _("%g frames in %gsec -- %gf/sec"),
               ptr->draw_count, elapsed_time, ptr->draw_count / elapsed_time);
 
-   push_statusbar(ptr, buf, 1);
+   push_statusbar(ptr, buf);
    g_timer_reset(ptr->timer);
    return TRUE;
    }
@@ -917,8 +917,8 @@ gint gtkgl_reshape(GtkWidget * widget, GdkEventConfigure * event, gpointer func_
       }
    
 //   g_print("+++ PIX_SIZE[0|1] %g|%g\n", view->pix_size[0], view->pix_size[1]);
-   g_print("+++ TYPE[%d]  world_{w|h|l|b} %g|%g|%g|%g  tmp: %g\n", view->type, world_w, world_h, world_l, world_b, tmp); 
-   g_print("+++ view_start|stop[0] %g|%g  view_start|stop[1] %g|%g\n", view->view_start[0], view->view_stop[0], view->view_start[1], view->view_stop[1]); 
+//   g_print("+++ TYPE[%d]  world_{w|h|l|b} %g|%g|%g|%g  tmp: %g\n", view->type, world_w, world_h, world_l, world_b, tmp); 
+//   g_print("+++ view_start|stop[0] %g|%g  view_start|stop[1] %g|%g\n", view->view_start[0], view->view_stop[0], view->view_start[1], view->view_stop[1]); 
    
    /* set up projection transformation */
    glMatrixMode(GL_PROJECTION);

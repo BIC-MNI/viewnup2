@@ -247,6 +247,7 @@ struct pane_info_struct {
    General_transform *transform;
 
    /* pane widgets */
+   GtkWidget *pane_frame;
    GtkWidget *hbox_pane;
    GtkWidget *vsep_eventbox;
    GtkWidget *vsep;
@@ -462,11 +463,9 @@ typedef struct {
    /* tooltips */
    GtkTooltips *tooltips;
 
-   /* styles */
-   GtkStyle *pane_highlight_style;
-   GtkStyle *view_highlight_style;
-   GtkStyle *pane_normal_style;
-   GtkStyle *view_normal_style;
+   /* colors */
+   GdkColor drk_blue;
+   GdkColor green;
 
    /* Glists */
    GList   *cmap_combo_items;

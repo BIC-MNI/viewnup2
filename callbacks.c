@@ -1,4 +1,4 @@
-		/* callbacks.c */
+/* callbacks.c */
 
 #include "callbacks.h"
 #include <math.h>
@@ -21,26 +21,9 @@ int      update_ranges(Pane_info pane);
 void     update_voxel_value(Pane_info pane);
 void     update_merge_combos(Main_info * ptr);
 
-/* functions to do stuff to the interface - externally callable */
-void init_highlight_styles(Main_info * ptr)
-{
-   GdkColor white = { 0, 65535, 65535, 65535 };
-   GdkColor drk_blue = { 0, 0, 2560, 20480 };
-   GdkColor green = { 0, 0, 65535, 0 };
-
-   ptr->pane_highlight_style = gtk_style_new();
-   ptr->view_highlight_style = gtk_style_new();
-
-   ptr->pane_highlight_style->fg[GTK_STATE_NORMAL] = white;
-   ptr->pane_highlight_style->bg[GTK_STATE_NORMAL] = drk_blue;
-
-   ptr->view_highlight_style->bg[GTK_STATE_NORMAL] = green;
-   }
-
 /* updates the statusbar */
-void push_statusbar(Main_info * ptr, char *buf, int highlight)
+void push_statusbar(Main_info * ptr, char *buf)
 {
-
    /* check as a just in case */
    if(ptr == NULL){
       ptr = get_main_ptr();
@@ -54,13 +37,6 @@ void push_statusbar(Main_info * ptr, char *buf, int highlight)
       gtk_statusbar_pop(GTK_STATUSBAR(ptr->statusbar), 1);
       gtk_statusbar_push(GTK_STATUSBAR(ptr->statusbar), 1, buf);
       }
-
-   if(highlight){
-      gtk_widget_set_style(GTK_WIDGET(ptr->statusbar), ptr->pane_highlight_style);
-      }
-   else {
-      gtk_widget_set_style(GTK_WIDGET(ptr->statusbar), NULL);
-      }
    }
 
 /* change the current active pane */
@@ -68,117 +44,116 @@ void make_pane_active(Pane_info pane)
 {
    Main_info *ptr = get_main_ptr();
    Pane_dialog *pi = ptr->pane_dialog;
-   
    int i;
    
-   if(pane != ptr->c_pane){
+   /* return early if we don't need to do anything */
+   if(pane == ptr->c_pane){
+      return;
+      }
+   
+   /* update pane styles, new then fix up old */
+   gtk_widget_modify_bg(GTK_WIDGET(pane->pane_frame), GTK_STATE_NORMAL, &ptr->drk_blue);
+   if(ptr->c_pane != NULL){
+      gtk_widget_modify_bg(GTK_WIDGET(ptr->c_pane->pane_frame), GTK_STATE_NORMAL, NULL);
+      }
 
-      /* update pane styles, new then fix up old */
-//      gtk_widget_set_style(GTK_WIDGET(pane->pane_label), ptr->pane_highlight_style);
-//      gtk_widget_set_style(GTK_WIDGET(pane->eventbox_label), ptr->pane_highlight_style);
-//      if(ptr->c_pane != NULL){
-//         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->pane_label), NULL);
-//         gtk_widget_set_style(GTK_WIDGET(ptr->c_pane->eventbox_label), NULL);
-//         }
+   /* sanity check first */
+   if(pi->signal_ids->len != pi->obj_ptrs->len){
+      g_error("Arrgh pi->signal_ids->len (%d) != pi->obj_ptrs->len (%d)\n", pi->signal_ids->len, pi->obj_ptrs->len);
+      }
 
-      /* sanity check first */
-      if(pi->signal_ids->len != pi->obj_ptrs->len){
-         g_error("Arrgh pi->signal_ids->len (%d) != pi->obj_ptrs->len (%d)\n", pi->signal_ids->len, pi->obj_ptrs->len);
-         }
-      
-      /* block all the signals we need to */
-      for(i=0; i<pi->signal_ids->len; i++){
-         g_signal_handler_block(g_ptr_array_index(pi->obj_ptrs, i), 
-                                g_array_index(pi->signal_ids, gulong, i));
-         }
-      
-      /* update widget values */
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->linear_interp_checkbutton),
-                                   pane->linear_interp);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->vector_checkbutton),
-                                   pane->vector);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->perspective_checkbutton),
-                                   pane->perspective);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->bbox_checkbutton),
-                                   pane->bounding_box);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->sbox_checkbutton),
-                                   pane->slice_box);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->crosshair_checkbutton),
-                                   pane->crosshair);
+   /* block all the signals we need to */
+   for(i=0; i<pi->signal_ids->len; i++){
+      g_signal_handler_block(g_ptr_array_index(pi->obj_ptrs, i), 
+                             g_array_index(pi->signal_ids, gulong, i));
+      }
 
-      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->crosshair_spinbutton),
-                                pane->crosshair_size);
+   /* update widget values */
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->linear_interp_checkbutton),
+                                pane->linear_interp);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->vector_checkbutton),
+                                pane->vector);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->perspective_checkbutton),
+                                pane->perspective);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->bbox_checkbutton),
+                                pane->bounding_box);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->sbox_checkbutton),
+                                pane->slice_box);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->crosshair_checkbutton),
+                                pane->crosshair);
 
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->scale_link_button),
-                                   pane->link_scales);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->rot_link_button),
-                                   pane->link_rots);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->trans_link_button),
-                                   pane->link_trans);
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->tilt_link_button),
-                                   pane->link_tilts);
+   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pi->crosshair_spinbutton),
+                             pane->crosshair_size);
 
-      /* then unblock */
-      for(i=0; i<pi->signal_ids->len; i++){
-         g_signal_handler_unblock(g_ptr_array_index(pi->obj_ptrs, i), 
-                                g_array_index(pi->signal_ids, gulong, i));
-         }
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->scale_link_button),
+                                pane->link_scales);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->rot_link_button),
+                                pane->link_rots);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->trans_link_button),
+                                pane->link_trans);
+   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->tilt_link_button),
+                                pane->link_tilts);
 
-      /* make the panes current view active */
-      if(pane->c_view != NULL){
-         make_view_active(pane, pane->c_view);
-         }
-      else {
-         make_view_active(pane, g_ptr_array_index(pane->views, 0));
-         }
+   /* then unblock */
+   for(i=0; i<pi->signal_ids->len; i++){
+      g_signal_handler_unblock(g_ptr_array_index(pi->obj_ptrs, i), 
+                             g_array_index(pi->signal_ids, gulong, i));
+      }
 
-      /* set a few buttons to insensitive */
-      if(pane->merge){
-         gtk_widget_set_sensitive(GTK_WIDGET(pi->vector_checkbutton), FALSE);
-         }
-      else {
-         gtk_widget_set_sensitive(GTK_WIDGET(pi->vector_checkbutton), TRUE);
-         }
+   /* make the panes current view active */
+   if(pane->c_view != NULL){
+      make_view_active(pane, pane->c_view);
+      }
+   else {
+      make_view_active(pane, g_ptr_array_index(pane->views, 0));
+      }
 
-      /* hide and show the appropriate frames */
-      if(pane->merge){
-         gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->merge_frame));
+   /* set a few buttons to insensitive */
+   if(pane->merge){
+      gtk_widget_set_sensitive(GTK_WIDGET(pi->vector_checkbutton), FALSE);
+      }
+   else {
+      gtk_widget_set_sensitive(GTK_WIDGET(pi->vector_checkbutton), TRUE);
+      }
+
+   /* hide and show the appropriate frames */
+   if(pane->merge){
+      gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->merge_frame));
+      gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
+      gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->vector_frame));
+      }
+   else {
+      gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->merge_frame));
+
+      if(pane->vector){
+         gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->vector_frame));
          gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
-         gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->vector_frame));
          }
       else {
-         gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->merge_frame));
+         gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
+         gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->vector_frame));
 
-         if(pane->vector){
-            gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->vector_frame));
-            gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
-            }
-         else {
-            gtk_widget_show(GTK_WIDGET(ptr->pane_dialog->cmap_frame));
-            gtk_widget_hide(GTK_WIDGET(ptr->pane_dialog->vector_frame));
+         /* update cmap frame */
+         gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->cmap_min_spinbutton),
+                                        GTK_ADJUSTMENT(pane->range_min_adj));
+         gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->cmap_max_spinbutton),
+                                        GTK_ADJUSTMENT(pane->range_max_adj));
 
-            /* update cmap frame */
-            gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->cmap_min_spinbutton),
-                                           GTK_ADJUSTMENT(pane->range_min_adj));
-            gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pi->cmap_max_spinbutton),
-                                           GTK_ADJUSTMENT(pane->range_max_adj));
+         gtk_range_set_adjustment(GTK_RANGE(pi->cmap_min_hscale),
+                                  GTK_ADJUSTMENT(pane->range_min_adj));
+         gtk_range_set_adjustment(GTK_RANGE(pi->cmap_max_hscale),
+                                  GTK_ADJUSTMENT(pane->range_max_adj));
 
-            gtk_range_set_adjustment(GTK_RANGE(pi->cmap_min_hscale),
-                                     GTK_ADJUSTMENT(pane->range_min_adj));
-            gtk_range_set_adjustment(GTK_RANGE(pi->cmap_max_hscale),
-                                     GTK_ADJUSTMENT(pane->range_max_adj));
-
-            gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->range_max_adj));
-            gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->range_min_adj));
+         gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->range_max_adj));
+         gtk_adjustment_value_changed(GTK_ADJUSTMENT(pane->range_min_adj));
 
 //            gtk_range_slider_update(GTK_RANGE(pi->cmap_min_hscale));
 //            gtk_range_slider_update(GTK_RANGE(pi->cmap_max_hscale));
-            }
          }
-
-      /* update c_pane ptr */
-      ptr->c_pane = pane;
       }
+
+   /* update c_pane ptr */
+   ptr->c_pane = pane;
    }
 
 /* change the current active view */
@@ -191,11 +166,11 @@ void make_view_active(Pane_info pane, View_info view)
    /* change styles if we have to */
    if(view != pane->c_view){
       /* first change this view */
-      gtk_widget_set_style(GTK_WIDGET(view->view_frame), ptr->view_highlight_style);
+      gtk_widget_modify_bg(GTK_WIDGET(view->view_frame), GTK_STATE_NORMAL, &ptr->green);
 
       /* then restore the previous c_view */
       if(pane->c_view != NULL){
-         gtk_widget_set_style(GTK_WIDGET(pane->c_view->view_frame), NULL);
+         gtk_widget_modify_bg(GTK_WIDGET(pane->c_view->view_frame), GTK_STATE_NORMAL, NULL);
          }
       }
 
@@ -357,21 +332,41 @@ int update_ranges(Pane_info pane)
 /* set the coordinate values */
 void update_coord_values(Pane_info pane)
 {
-   /* update values only if we have to */
-   if(pane->w[0] != (double)GTK_ADJUSTMENT(pane->coord_wx_adj)->value){   
-      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wx), pane->w[0]);
-      }
+   if(pane->use_vox_coords){
+      /* update values only if we have to */
+      if(pane->v[0] != (double)GTK_ADJUSTMENT(pane->coord_vx_adj)->value){   
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vx), pane->v[0]);
+         }
    
-   if(pane->w[1] != (double)GTK_ADJUSTMENT(pane->coord_wy_adj)->value){
-      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wy), pane->w[1]);
-      }
+      if(pane->v[1] != (double)GTK_ADJUSTMENT(pane->coord_vy_adj)->value){
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vy), pane->v[1]);
+         }
    
-   if(pane->w[2] != (double)GTK_ADJUSTMENT(pane->coord_wz_adj)->value){
-      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wz), pane->w[2]);
-      }
+      if(pane->v[2] != (double)GTK_ADJUSTMENT(pane->coord_vz_adj)->value){
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vz), pane->v[2]);
+         }
    
-   if(pane->w[3] != (double)GTK_ADJUSTMENT(pane->coord_wt_adj)->value){
-      gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wt), pane->w[3]);
+      if(pane->v[3] != (double)GTK_ADJUSTMENT(pane->coord_vt_adj)->value){
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vt), pane->v[3]);
+         }
+      }
+   else{
+      /* update values only if we have to */
+      if(pane->w[0] != (double)GTK_ADJUSTMENT(pane->coord_wx_adj)->value){   
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wx), pane->w[0]);
+         }
+   
+      if(pane->w[1] != (double)GTK_ADJUSTMENT(pane->coord_wy_adj)->value){
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wy), pane->w[1]);
+         }
+   
+      if(pane->w[2] != (double)GTK_ADJUSTMENT(pane->coord_wz_adj)->value){
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wz), pane->w[2]);
+         }
+   
+      if(pane->w[3] != (double)GTK_ADJUSTMENT(pane->coord_wt_adj)->value){
+         gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_wt), pane->w[3]);
+         }
       }
    }
 
@@ -850,6 +845,7 @@ void coord_type_button_clicked(GtkButton * button, gpointer user_data)
 
    /* change the coord values to suit */
    show_hide_coord_spins(pane);
+   update_coord_values(pane);
    }
 
 void vx_coord_changed(GtkEditable * editable, gpointer user_data)
@@ -897,11 +893,6 @@ void wx_coord_changed(GtkEditable * editable, gpointer user_data)
    pane->w[0] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
    update_voxel_from_world(pane);
 
-   /* update the voxel spins but block callbacks first */
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pane->coord_vx), user_data);
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vx), pane->v[0]);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pane->coord_vx), user_data);
-
    for(c = 0; c < pane->views->len; c++){
       view = g_ptr_array_index(pane->views, c);
       if(view->type == SAGITTAL){
@@ -923,11 +914,6 @@ void wy_coord_changed(GtkEditable * editable, gpointer user_data)
 
    pane->w[1] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
    update_voxel_from_world(pane);
-
-   /* update the voxel spins but block callbacks first */
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pane->coord_vy), user_data);
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vy), pane->v[1]);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pane->coord_vy), user_data);
 
    for(c = 0; c < pane->views->len; c++){
       view = g_ptr_array_index(pane->views, c);
@@ -951,11 +937,6 @@ void wz_coord_changed(GtkEditable * editable, gpointer user_data)
    pane->w[2] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
    update_voxel_from_world(pane);
 
-   /* update the voxel spins but block callbacks first */
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pane->coord_vz), user_data);
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vz), pane->v[2]);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pane->coord_vz), user_data);
-
    for(c = 0; c < pane->views->len; c++){
       view = g_ptr_array_index(pane->views, c);
       if(view->type == TRANSVERSE){
@@ -977,11 +958,6 @@ void wt_coord_changed(GtkEditable * editable, gpointer user_data)
 
    pane->w[3] = gtk_spin_button_get_value(GTK_SPIN_BUTTON(editable));
    update_voxel_from_world(pane);
-
-   /* update the voxel spins but block callbacks first */
-   gtk_signal_handler_block_by_data(GTK_OBJECT(pane->coord_vt), user_data);
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(pane->coord_vt), pane->v[3]);
-   gtk_signal_handler_unblock_by_data(GTK_OBJECT(pane->coord_vt), user_data);
 
    for(c = 0; c < pane->views->len; c++){
       view = g_ptr_array_index(pane->views, c);
@@ -1010,20 +986,20 @@ void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
 
    if(text == NULL){
       g_snprintf(buf, 128, _("open file passed NULL pointer!"));
-      push_statusbar(ptr, buf, 1);
+      push_statusbar(ptr, buf);
       return;
       }
 
    if(!g_file_test(text, G_FILE_TEST_EXISTS)){
       g_snprintf(buf, 128, _("'%s' does not exist"), text);
-      push_statusbar(ptr, buf, 1);
+      push_statusbar(ptr, buf);
       return;
       }
 
    /* start to load the file to the pane */
    if(!start_open_minc_file_to_pane(pane, text)){
       g_snprintf(buf, 128, _("'%s' is either broken or not a MINC file"), text);
-      push_statusbar(ptr, buf, 1);
+      push_statusbar(ptr, buf);
       return;
       }
 
@@ -1103,7 +1079,7 @@ void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
       }
    if(!load_table_to_pane(pane)){
       g_snprintf(buf, 128, _("Ack! couldn't load cmap for %s"), pane->file_basename->str);
-      push_statusbar(ptr, buf, 1);
+      push_statusbar(ptr, buf);
       return;
       }
 
@@ -1145,7 +1121,7 @@ void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
    redraw_pane_views(pane);
 
    g_snprintf(buf, 128, _("%s successfully loaded"), pane->file_basename->str);
-   push_statusbar(ptr, buf, 1);
+   push_statusbar(ptr, buf);
 
    /* update the merge combos */
    update_merge_combos(ptr);
@@ -1300,8 +1276,8 @@ vsep_eventbox_motion_notify_event(GtkWidget * widget, GdkEventMotion * event,
       }
 
    if(state){
-      gtk_widget_set_usize(pane->vbox_pane,
-                           GTK_WIDGET(pane->vbox_pane)->allocation.width + x, -2);
+      gtk_widget_set_size_request(pane->vbox_pane,
+                           GTK_WIDGET(pane->vbox_pane)->allocation.width + x, -1);
       }
 
    return TRUE;
@@ -1325,7 +1301,7 @@ void cmap_file_ok_button_clicked(GtkButton * button, gpointer user_data)
 
    if(lut == NULL){
       g_snprintf(buf, 128, _("Trouble reading colourmap: %s"), filename);
-      push_statusbar(ptr, buf, 1);
+      push_statusbar(ptr, buf);
       }
 
    else {
