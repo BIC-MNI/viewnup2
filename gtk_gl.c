@@ -539,35 +539,35 @@ gint gtkgl_motion_notify(GtkWidget * widget, GdkEventMotion * event, gpointer fu
                }
             }
          }
-//      else{
-//         /* change the slice tilt */
-//         trackball(tempquat,
-//                   (view->pix_start_pos[0] -
-//                    (view->pix_size[0] / 2)) / view->pix_size[0],
-//                   (view->pix_start_pos[1] -
-//                    (view->pix_size[1] / 2)) / view->pix_size[1],
-//                   (view->pix_start_pos[0] + delta_x -
-//                    (view->pix_size[0] / 2)) / view->pix_size[0],
-//                   (view->pix_start_pos[1] + delta_y -
-//                    (view->pix_size[1] / 2)) / view->pix_size[1]
-//            );
-//
-//         add_quats(tempquat, view->tilt_quat, view->tilt_quat);
-//         update_slice_tilt(pane, view);
-//         update_pi_tilts(ptr, view->tilt_w[0], view->tilt_w[1], view->tilt_w[2]);
-//
-//         if(pane->link_tilts){
-//            for(c = 0; c < pane->views->len; c++){
-//               v_ptr = g_ptr_array_index(pane->views, c);
-//               if(v_ptr != view){
-//                  add_quats(tempquat, v_ptr->tilt_quat, v_ptr->tilt_quat);
-//                  quat_to_zvec(v_ptr->tilt_w, v_ptr->tilt_quat);
-//                  update_slice_tilt(pane, v_ptr);
-//                  }
-//               }
-//            }
-//
-//         }
+      else{
+         /* change the slice tilt */
+         trackball(tempquat,
+                   (view->pix_start_pos[0] -
+                    (view->pix_size[0] / 2)) / view->pix_size[0],
+                   (view->pix_start_pos[1] -
+                    (view->pix_size[1] / 2)) / view->pix_size[1],
+                   (view->pix_start_pos[0] + delta_x -
+                    (view->pix_size[0] / 2)) / view->pix_size[0],
+                   (view->pix_start_pos[1] + delta_y -
+                    (view->pix_size[1] / 2)) / view->pix_size[1]
+            );
+
+         add_quats(tempquat, view->tilt_quat, view->tilt_quat);
+         update_slice_tilt(pane, view);
+         update_pi_tilts(ptr, view->tilt_w[0], view->tilt_w[1], view->tilt_w[2]);
+
+         if(pane->link_tilts){
+            for(c = 0; c < pane->views->len; c++){
+               v_ptr = g_ptr_array_index(pane->views, c);
+               if(v_ptr != view){
+                  add_quats(tempquat, v_ptr->tilt_quat, v_ptr->tilt_quat);
+                  quat_to_zvec(v_ptr->tilt_w, v_ptr->tilt_quat);
+                  update_slice_tilt(pane, v_ptr);
+                  }
+               }
+            }
+
+         }
       }
 
    view->pix_start_pos[0] += delta_x;
