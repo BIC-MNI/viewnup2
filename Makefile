@@ -13,20 +13,20 @@ EXT_HEADERS = config.h globals.h
 
 OBJS = $(HEADERS:.h=.o)
 
-CC = gcc
+CC = gcc -g
 
 WARNINGS = -Wall -Wunused -Wmissing-prototypes -Wmissing-declarations
 
 # OPTIONS = -O3 $(WARNINGS) -DGTK_DISABLE_DEPRECATED=1
 OPTIONS = -O3 $(WARNINGS)
 
-INCLUDES = -I/usr/local/mni/include -I/usr/include \
+INCLUDES = -I/usr/local/bic/include -I/usr/include \
 	`pkg-config gtkglext-1.0 gtk+-2.0 glib-2.0 --cflags`
 CFLAGS = $(OPTIONS) $(INCLUDES)
 
-LDINCLUDES = -L/usr/local/mni/lib \
+LDINCLUDES = -L/usr/local/bic/lib \
 	`pkg-config gtkglext-1.0 gtk+-2.0 glib-2.0 --libs`
-LDLIBS = -lpopt -lGL -lGLU -lvolume_io -lminc -lnetcdf -lm
+LDLIBS = -lpopt -lGL -lGLU -lvolume_io2 -lminc2 -lhdf5 -lnetcdf -lm
 
 LDOPTS = $(LDINCLUDES) $(LDLIBS)
 

@@ -556,23 +556,23 @@ Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge)
       g_string_sprintf(pane->file_basename, NO_FILE_STR);
 
       /* cmap range adjusters */
-      pane->range_min_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
-      pane->range_max_adj = gtk_adjustment_new(1, 0, 1, 1, 10, 1);
+      pane->range_min_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
+      pane->range_max_adj = gtk_adjustment_new(1, 0, 1, 1, 10, 0);
 
       g_object_ref(pane->range_min_adj);
       g_object_ref(pane->range_max_adj);
       }
 
    /* coordinate adjusters */
-   pane->coord_vx_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
-   pane->coord_vy_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
-   pane->coord_vz_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
-   pane->coord_vt_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
+   pane->coord_vx_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
+   pane->coord_vy_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
+   pane->coord_vz_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
+   pane->coord_vt_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
 
-   pane->coord_wx_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
-   pane->coord_wy_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
-   pane->coord_wz_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
-   pane->coord_wt_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 1);
+   pane->coord_wx_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
+   pane->coord_wy_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
+   pane->coord_wz_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
+   pane->coord_wt_adj = gtk_adjustment_new(0, 0, 1, 1, 10, 0);
 
    g_object_ref(pane->coord_vx_adj);
    g_object_ref(pane->coord_vy_adj);

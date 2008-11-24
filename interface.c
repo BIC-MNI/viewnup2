@@ -943,7 +943,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pi->bbox_checkbutton), TRUE);
 
-   pi->crosshair_spinbutton_adj = gtk_adjustment_new(100, 0, 100, 1, 10, 10);
+   pi->crosshair_spinbutton_adj = gtk_adjustment_new(100, 0, 100, 1, 10, 0);
    pi->crosshair_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->crosshair_spinbutton_adj), 1, 0);
    gtk_widget_show(pi->crosshair_spinbutton);
@@ -1115,7 +1115,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_scale_lock_pixmap);
    gtk_container_add(GTK_CONTAINER(pi->scale_lock_button), pi_scale_lock_pixmap);
 
-   pi->scale_spinbutton_adj = gtk_adjustment_new(1, 0.1, 500, 0.01, 0.1, 0.01);
+   pi->scale_spinbutton_adj = gtk_adjustment_new(1, 0.1, 500, 0.01, 0.1, 0);
    pi->scale_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->scale_spinbutton_adj), 0.01, 3);
    gtk_widget_show(pi->scale_spinbutton);
@@ -1135,7 +1135,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_rot_pixmap);
    gtk_container_add(GTK_CONTAINER(pi_rot_button), pi_rot_pixmap);
 
-   pi->rot_x_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0.1);
+   pi->rot_x_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0);
    pi->rot_x_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->rot_x_spinbutton_adj), 0.01, 2);
    gtk_widget_show(pi->rot_x_spinbutton);
@@ -1145,7 +1145,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_tooltips_set_tip(tooltips, pi->rot_x_spinbutton, _("x rotation"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->rot_x_spinbutton), TRUE);
 
-   pi->rot_y_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0.1);
+   pi->rot_y_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0);
    pi->rot_y_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->rot_y_spinbutton_adj), 0.01, 2);
    gtk_widget_show(pi->rot_y_spinbutton);
@@ -1155,7 +1155,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_tooltips_set_tip(tooltips, pi->rot_y_spinbutton, _("y rotation"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->rot_x_spinbutton), TRUE);
 
-   pi->rot_z_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0.1);
+   pi->rot_z_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0);
    pi->rot_z_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->rot_z_spinbutton_adj), 0.01, 2);
    gtk_widget_show(pi->rot_z_spinbutton);
@@ -1165,7 +1165,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_tooltips_set_tip(tooltips, pi->rot_z_spinbutton, _("z rotation"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->rot_x_spinbutton), TRUE);
 
-   pi->rot_phi_spinbutton_adj = gtk_adjustment_new(0, 0, 359, 1, 12, 12);
+   pi->rot_phi_spinbutton_adj = gtk_adjustment_new(0, 0, 359, 1, 12, 0);
    pi->rot_phi_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->rot_phi_spinbutton_adj), 1, 2);
    gtk_widget_show(pi->rot_phi_spinbutton);
@@ -1206,7 +1206,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_trans_pixmap);
    gtk_container_add(GTK_CONTAINER(pi_trans_button), pi_trans_pixmap);
 
-   pi->trans_x_spinbutton_adj = gtk_adjustment_new(0, -400, 400, 1, 10, 10);
+   pi->trans_x_spinbutton_adj = gtk_adjustment_new(0, -400, 400, 1, 10, 0);
    pi->trans_x_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->trans_x_spinbutton_adj), 1, 2);
    gtk_widget_show(pi->trans_x_spinbutton);
@@ -1215,7 +1215,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->trans_x_spinbutton, _("x translation"), NULL);
 
-   pi->trans_y_spinbutton_adj = gtk_adjustment_new(0, -400, 400, 1, 10, 10);
+   pi->trans_y_spinbutton_adj = gtk_adjustment_new(0, -400, 400, 1, 10, 0);
    pi->trans_y_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->trans_y_spinbutton_adj), 1, 2);
    gtk_widget_show(pi->trans_y_spinbutton);
@@ -1224,7 +1224,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                     (GtkAttachOptions) (0), 0, 0);
    gtk_tooltips_set_tip(tooltips, pi->trans_y_spinbutton, _("y translation"), NULL);
 
-   pi->trans_z_spinbutton_adj = gtk_adjustment_new(0, -400, 400, 1, 10, 10);
+   pi->trans_z_spinbutton_adj = gtk_adjustment_new(0, -400, 400, 1, 10, 0);
    pi->trans_z_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->trans_z_spinbutton_adj), 1, 2);
    gtk_widget_show(pi->trans_z_spinbutton);
@@ -1244,7 +1244,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_tilt_pixmap);
    gtk_container_add(GTK_CONTAINER(pi_tilt_button), pi_tilt_pixmap);
 
-   pi->tilt_x_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 10);
+   pi->tilt_x_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0);
    pi->tilt_x_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->tilt_x_spinbutton_adj), 0.01, 2);
    gtk_widget_show(pi->tilt_x_spinbutton);
@@ -1254,7 +1254,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_tooltips_set_tip(tooltips, pi->tilt_x_spinbutton, _("x tilt"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->tilt_x_spinbutton), TRUE);
 
-   pi->tilt_y_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 10);
+   pi->tilt_y_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0);
    pi->tilt_y_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->tilt_y_spinbutton_adj), 0.01, 2);
    gtk_widget_show(pi->tilt_y_spinbutton);
@@ -1264,7 +1264,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_tooltips_set_tip(tooltips, pi->tilt_y_spinbutton, _("y tilt"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->tilt_y_spinbutton), TRUE);
 
-   pi->tilt_z_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 10);
+   pi->tilt_z_spinbutton_adj = gtk_adjustment_new(0, -1, 1, 0.01, 0.1, 0);
    pi->tilt_z_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->tilt_z_spinbutton_adj), 0.01, 2);
    gtk_widget_show(pi->tilt_z_spinbutton);
@@ -1516,7 +1516,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_tooltips_set_tip(tooltips, pi_vector_mult_button,
                         _("click to reset vector multiplier"), NULL);
 
-   pi_vector_mult_spinbutton_adj = gtk_adjustment_new(1, 0.001, 1000, 0.01, 0.1, 0.1);
+   pi_vector_mult_spinbutton_adj = gtk_adjustment_new(1, 0.001, 1000, 0.01, 0.1, 0);
    pi->vector_mult_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi_vector_mult_spinbutton_adj), 1, 3);
    gtk_widget_show(pi->vector_mult_spinbutton);
@@ -1526,8 +1526,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_tooltips_set_tip(tooltips, pi->vector_mult_spinbutton, _("vector scale factor"),
                         NULL);
 
-   pi_vector_alpha_mult_spinbutton_adj =
-      gtk_adjustment_new(1, 0.001, 1000, 0.01, 0.1, 0.1);
+   pi_vector_alpha_mult_spinbutton_adj = gtk_adjustment_new(1, 0.001, 1000, 0.01, 0.1, 0);
    pi->vector_alpha_mult_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi_vector_alpha_mult_spinbutton_adj), 1, 3);
    gtk_widget_show(pi->vector_alpha_mult_spinbutton);
@@ -1593,7 +1592,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_widget_show(pi_vector_range_table);
    gtk_box_pack_start(GTK_BOX(pi_vector_vbox), pi_vector_range_table, FALSE, TRUE, 0);
 
-   pi->vector_max_spinbutton_adj = gtk_adjustment_new(255, 0, 255, 1, 10, 10);
+   pi->vector_max_spinbutton_adj = gtk_adjustment_new(255, 0, 255, 1, 10, 0);
    pi->vector_max_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->vector_max_spinbutton_adj), 1, 2);
    gtk_widget_show(pi->vector_max_spinbutton);
@@ -1604,7 +1603,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
                         _("maximum vector to show(euclidian distance)"), NULL);
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->vector_max_spinbutton), TRUE);
 
-   pi->vector_min_spinbutton_adj = gtk_adjustment_new(0, 0, 255, 1, 10, 10);
+   pi->vector_min_spinbutton_adj = gtk_adjustment_new(0, 0, 255, 1, 10, 0);
    pi->vector_min_spinbutton =
       gtk_spin_button_new(GTK_ADJUSTMENT(pi->vector_min_spinbutton_adj), 1, 2);
    gtk_widget_show(pi->vector_min_spinbutton);
@@ -1616,7 +1615,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pi->vector_min_spinbutton), TRUE);
 
    pi->vector_min_hscale =
-      gtk_hscale_new(GTK_ADJUSTMENT(gtk_adjustment_new(0, 0, 256, 1, 10, 10)));
+      gtk_hscale_new(GTK_ADJUSTMENT(gtk_adjustment_new(0, 0, 256, 1, 10, 0)));
    gtk_widget_show(pi->vector_min_hscale);
    gtk_table_attach(GTK_TABLE(pi_vector_range_table), pi->vector_min_hscale, 1, 3, 0, 1,
                     (GtkAttachOptions) (GTK_EXPAND | GTK_FILL),
@@ -1624,7 +1623,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
    gtk_scale_set_draw_value(GTK_SCALE(pi->vector_min_hscale), FALSE);
 
    pi->vector_max_hscale =
-      gtk_hscale_new(GTK_ADJUSTMENT(gtk_adjustment_new(246, 0, 256, 1, 10, 10)));
+      gtk_hscale_new(GTK_ADJUSTMENT(gtk_adjustment_new(246, 0, 256, 1, 10, 0)));
    gtk_widget_show(pi->vector_max_hscale);
    gtk_table_attach(GTK_TABLE(pi_vector_range_table), pi->vector_max_hscale, 1, 3, 1, 2,
                     (GtkAttachOptions) (GTK_FILL),
@@ -1656,7 +1655,7 @@ GtkWidget *create_pane_info_dialog(Main_info * ptr)
       pi->merge_combo_entry[c] = GTK_COMBO(pi->merge_combo[c])->entry;
       gtk_widget_show(pi->merge_combo_entry[c]);
 
-      pi->merge_coeff_adj[c] = gtk_adjustment_new(50, 0, 100.1, 1, 1, 0.1);
+      pi->merge_coeff_adj[c] = gtk_adjustment_new(50, 0, 100.1, 1, 1, 0);
       pi->merge_hscale[c] = gtk_hscale_new(GTK_ADJUSTMENT(pi->merge_coeff_adj[c]));
       gtk_widget_show(pi->merge_hscale[c]);
       gtk_table_attach(GTK_TABLE(pi_merge_table), pi->merge_hscale[c], 1, 2, c, c + 1,

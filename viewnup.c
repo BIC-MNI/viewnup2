@@ -164,10 +164,10 @@ Synch_info *init_synch_info()
    Synch_info *synch = (Synch_info *) g_malloc(sizeof(Synch_info));
 
    synch->virgin = TRUE;
-   synch->synch_x_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 1);
-   synch->synch_y_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 1);
-   synch->synch_z_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 1);
-   synch->synch_t_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 1);
+   synch->synch_x_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 0);
+   synch->synch_y_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 0);
+   synch->synch_z_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 0);
+   synch->synch_t_adj = gtk_adjustment_new(0, -100, 100, 1, 10, 0);
 
    g_object_ref(synch->synch_x_adj);
    g_object_ref(synch->synch_y_adj);
