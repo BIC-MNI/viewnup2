@@ -37,6 +37,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <GL/gl.h>
 #include <gtk/gtk.h>
 #include <gtk/gtkgl.h>
 #include <volume_io.h>
@@ -93,7 +94,7 @@ struct view_info_struct {
    int      type;
 
    unsigned char *texmap;
-   int      texmap_id;
+   GLuint      texmap_id;
    int      texmap_size[2];
    double   texmap_stop[2];
    int      texmap_space;

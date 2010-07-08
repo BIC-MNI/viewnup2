@@ -60,7 +60,6 @@ void     draw_bbox_line(double *obl_norm, double *obl_point,
 void configure_gtkgl(Main_info * ptr)
 {
    /* set up the GdkGLConfig */
-   g_print("1\n");
    ptr->glconfig = gdk_gl_config_new_by_mode(GDK_GL_MODE_RGB |
                                              GDK_GL_MODE_ALPHA |
                                              GDK_GL_MODE_DEPTH | GDK_GL_MODE_DOUBLE);
@@ -69,21 +68,14 @@ void configure_gtkgl(Main_info * ptr)
       exit(EXIT_FAILURE);
       }
    
-   g_print("2\n");
-   
    ptr->gtkgl_share = gtk_drawing_area_new();
-   g_print("3\n");
    gtk_widget_set_gl_capability(ptr->gtkgl_share,
                                 ptr->glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
-   g_print("4\n");
    gtk_box_pack_start(GTK_BOX(ptr->main_vbox), ptr->gtkgl_share, FALSE, FALSE, 0);
-   g_print("5\n");
    gtk_widget_realize(ptr->gtkgl_share);
 
-   g_print("6\n");
    /* set up the shared context object */
    ptr->glcontext = gtk_widget_get_gl_context(ptr->gtkgl_share);
-   g_print("7\n");
    }
 
 GtkWidget *create_gtkgl_widget(Main_info * ptr, Pane_info pane, View_info view)
@@ -123,7 +115,7 @@ GtkWidget *create_gtkgl_widget(Main_info * ptr, Pane_info pane, View_info view)
                     G_CALLBACK(gtkgl_motion_notify), gtkgl_info);
    g_signal_connect(GTK_OBJECT(gtkgl_widget), "button_release_event",
                     G_CALLBACK(gtkgl_button_release), gtkgl_info);
-
+   
    return (gtkgl_widget);
    }
 
@@ -658,7 +650,7 @@ void load_view_texmap(Pane_info pane, View_info view)
       g_error(_("Canna map that texture Capt'n! - %d-%s\n"), view->type,
               pane->file_basename->str);
       }
-
+   
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                 view->texmap_size[0], view->texmap_size[1],
                 0, GL_COLOR_INDEX, GL_UNSIGNED_BYTE, NULL);
@@ -688,8 +680,19 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
       return TRUE;
       }
 
-   /* if we don't have to draw this pane, return early */
+   /* if we don't have to draw this pane, blank it and return early */
    if(!pane->draw){
+      gldrawable = gtk_widget_get_gl_drawable(widget);
+      glcontext = gtk_widget_get_gl_context(widget);
+      
+      if(!gdk_gl_drawable_gl_begin(gldrawable, glcontext)){
+         return FALSE;
+         }
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+   
+      gdk_gl_drawable_gl_end(gldrawable);
+      gdk_gl_drawable_swap_buffers(gldrawable);
+      
       return TRUE;
       }
 
@@ -733,8 +736,6 @@ gint gtkgl_draw(GtkWidget * widget, GdkEventExpose * event, gpointer func_data)
 
    /* draw the data */
    if(pane->merge){
-
-      double   fac;
 
       glPushMatrix();
 
@@ -999,9 +1000,12 @@ gint gtkgl_init(GtkWidget * widget, gpointer func_data)
       glEnable(GL_LINE_SMOOTH);
       }
 
-   glClearColor(0.0, 0.0, 0.0, 1.0);
+   glClearColor(0.0, 0.0, 0.0, 0.0);
+   glClearDepth(1.0);
    glDepthFunc(GL_LEQUAL);
    glEnable(GL_DEPTH_TEST);
+   
+   g_print("Init view widget\n");
 
    view->quadric = gluNewQuadric();
 
@@ -1175,7 +1179,7 @@ int draw_texture_slice(Pane_info pane, View_info v)
       if(!get_minc_image(pane, v)){
          return FALSE;
          }
-
+      
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                       pane->sizes[v->x_idx], pane->sizes[v->y_idx],
                       GL_COLOR_INDEX, GL_UNSIGNED_BYTE, (GLvoid *) v->texmap);

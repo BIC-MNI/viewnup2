@@ -423,7 +423,7 @@ GtkWidget *create_viewnup_main(Main_info * ptr)
    viewnup_main = gtk_window_new(GTK_WINDOW_TOPLEVEL);
    gtk_window_set_title(GTK_WINDOW(viewnup_main), _("viewnup"));
    gtk_window_set_position(GTK_WINDOW(viewnup_main), GTK_WIN_POS_CENTER);
-   gtk_window_set_default_size(GTK_WINDOW(viewnup_main), 900, 750);
+   gtk_window_set_default_size(GTK_WINDOW(viewnup_main), 1280, 1024);
 
    ptr->main_vbox = gtk_vbox_new(FALSE, 0);
    gtk_widget_show(ptr->main_vbox);

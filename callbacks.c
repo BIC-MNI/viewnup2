@@ -304,14 +304,14 @@ int update_ranges(Pane_info pane)
    min->upper = pane->pane_max;
    min->step_increment = inc_size;
    min->page_increment = inc_size * 4;
-   min->page_size = inc_size;
+   min->page_size = 0;
 
    max->lower = pane->pane_min;
    max->value = pane->pane_max_value;
    max->upper = pane->pane_max;
    max->step_increment = inc_size;
    max->page_increment = inc_size * 4;
-   max->page_size = inc_size;
+   max->page_size = 0;
 
    gtk_spin_button_set_adjustment(GTK_SPIN_BUTTON(pane->range_min_val),
                                   GTK_ADJUSTMENT(pane->range_min_adj));

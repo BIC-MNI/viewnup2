@@ -2,15 +2,13 @@
 /*                                                                           */
 /* The multiple minc file viewer                                             */
 /*                                                                           */
-/* Andrew Janke - rotor@cmr.uq.edu.au                                        */
-/* Center for Magnetic Resonance                                             */
-/* University of Queensland                                                  */
+/* Andrew Janke - a.janke@gmail.com                                          */
 /*                                                                           */
-/* Copyright Andrew Janke, The University of Queensland.                     */
+/* Copyright Andrew Janke.                                                   */
 /* Permission to use, copy, modify, and distribute this software and its     */
 /* documentation for any purpose and without fee is hereby granted,          */
 /* provided that the above copyright notice appear in all copies.  The       */
-/* author and the University of Queensland make no representations about the */
+/* author makes no representations about the                                 */
 /* suitability of this software for any purpose.  It is provided "as is"     */
 /* without express or implied warranty.                                      */
 
