@@ -15,7 +15,7 @@
 #include "viewnup.h"
 
 #include <math.h>
-#include <popt.h>
+/*#include <popt.h>*/
 #include "interface.h"
 #include "callbacks.h"
 #include "lookup_table.h"
@@ -49,6 +49,7 @@ static int link_rots = FALSE;
 static int link_tilts = FALSE;
 
 /* popt (gtk) argument table */
+/*
 struct poptOption options[] = {
    {"verbose", 'v', POPT_ARG_NONE, &verbose, 0,
     "Print out extra information", NULL},
@@ -86,7 +87,7 @@ struct poptOption options[] = {
     "Link tilts between views", NULL},
    {NULL, '\0', 0, NULL, 0, NULL, NULL}
    };
-
+*/
 /* toplevel struct ptr function */
 Main_info *init_main_info(int init_synch_idx, int transverse, int sagittal, int coronal)
 {
@@ -381,7 +382,7 @@ Pane_info init_pane_info(Synch_info * synch)
    /* init volume structures and transform */
    pane->perc_input = 0.0;
    pane->volume = NULL;
-   pane->transform = g_malloc(sizeof(General_transform));
+   pane->transform = g_malloc(sizeof(VIO_General_transform));
    create_linear_transform(pane->transform, NULL);
 
    /* merge adjustments and pane ptrs */
@@ -583,7 +584,7 @@ int main(int argc, char *argv[])
    int      add_merge_pane = TRUE;
    int      c;
    int      init_synch_idx;
-   poptContext pctx;
+   /*poptContext pctx;*/
    
    // temporary measure
    verbose = TRUE;

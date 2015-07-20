@@ -1,0 +1,56 @@
+PROJECT(VIEWNUP2)
+cmake_minimum_required(VERSION 2.8)
+enable_language(C)
+
+
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h @ONLY)
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+
+
+FIND_PACKAGE(LIBMINC REQUIRED)
+FIND_PACKAGE(PkgConfig REQUIRED)
+
+IF(PKG_CONFIG_FOUND)
+    INCLUDE(FindPkgConfig)
+
+    PKG_CHECK_MODULES(GTK2 gtk+-2.0)
+   
+    IF(WIN32)
+        PKG_CHECK_MODULES(GTKGL gtkglext-win32-1.0)
+    ELSE(WIN32)
+        PKG_CHECK_MODULES(GTKGL gtkglext-x11-1.0)
+    ENDIF(WIN32)
+ENDIF(PKG_CONFIG_FOUND)
+
+include_directories (${GTKGL_INCLUDE_DIRS})
+link_directories (${GTKGL_LIBRARY_DIRS})
+add_definitions (${GTKGL_CFLAGS_OTHER})
+add_definitions(${GTKGL_DEFINITIONS})
+
+message("GTK2_INCLUDE_DIRS=${GTK2_INCLUDE_DIRS}")
+message("GTKGL_INCLUDE_DIRS=${GTKGL_INCLUDE_DIRS}")
+
+IF(HAVE_MINC1)
+  ADD_DEFINITIONS(-DHAVE_MINC -DHAVE_MINC1)
+ENDIF(HAVE_MINC1)
+
+INCLUDE( ${LIBMINC_USE_FILE} )
+LINK_LIBRARIES(${LIBMINC_LIBRARIES})
+
+
+
+ADD_EXECUTABLE(viewnup 
+callbacks.h 
+geometry.h 
+gtk_gl.h 
+interface.h 
+minc_io.h 
+trackball.h 
+viewnup.h 
+pixmaps.h 
+lookup_table.h  
+callbacks.c  geometry.c  gtk_gl.c  interface.c  lookup_table.c  minc_io.c  pixmaps.c  trackball.c  viewnup.c
+)
+TARGET_LINK_LIBRARIES(viewnup ${GTKGL_LIBRARIES})
+INSTALL( TARGETS viewnup  DESTINATION bin)
+

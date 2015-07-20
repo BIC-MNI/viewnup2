@@ -243,9 +243,9 @@ struct pane_info_struct {
 
    /* volume information and linear transform */
    double   perc_input;
-   Volume   volume;
+   VIO_Volume   volume;
    volume_input_struct input_info;
-   General_transform *transform;
+   VIO_General_transform *transform;
 
    /* pane widgets */
    GtkWidget *pane_frame;

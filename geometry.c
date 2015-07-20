@@ -278,8 +278,8 @@ void update_world_from_voxel(Pane_info pane)
 /* convert a view world vector to a voxel vector */
 void update_voxel_vector_from_world(Pane_info pane, View_info view)
 {
-   Real     point[3], origin[3];
-   register int c;
+   VIO_Real     point[3], origin[3];
+   int c;
 
    general_inverse_transform_point(pane->transform,
                                    0.0, 0.0, 0.0, &origin[0], &origin[1], &origin[2]);
@@ -295,8 +295,8 @@ void update_voxel_vector_from_world(Pane_info pane, View_info view)
 /* convert a view voxel vector to a world vector */
 void update_world_vector_from_voxel(Pane_info pane, View_info view)
 {
-   Real     point[3], origin[3];
-   register int c;
+   VIO_Real     point[3], origin[3];
+   int c;
 
    general_transform_point(pane->transform,
                            0.0, 0.0, 0.0, &origin[0], &origin[1], &origin[2]);

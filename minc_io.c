@@ -6,18 +6,18 @@
 
 extern int verbose;
 
-static STRING axis_order_3D[3] = { MIzspace, MIyspace, MIxspace };
-static STRING axis_order_4D_time[4] = { MIzspace, MIyspace, MIxspace, MItime };
-static STRING axis_order_4D_vector[4] =
+static VIO_STR axis_order_3D[3] = { MIzspace, MIyspace, MIxspace };
+static VIO_STR axis_order_4D_time[4] = { MIzspace, MIyspace, MIxspace, MItime };
+static VIO_STR axis_order_4D_vector[4] =
    { MIzspace, MIyspace, MIxspace, MIvector_dimension };
 
 int start_open_minc_file_to_pane(Pane_info pane, char *filename)
 {
    int      sizes[MAX_VAR_DIMS];
-   Real     steps[MAX_VAR_DIMS];
-   Real     starts[MAX_VAR_DIMS];
-   STRING  *dim_names;
-   STRING  *axis_order_ptr;
+   VIO_Real     steps[MAX_VAR_DIMS];
+   VIO_Real     starts[MAX_VAR_DIMS];
+   VIO_STR  *dim_names;
+   VIO_STR  *axis_order_ptr;
    minc_input_options options;
    int      c;
    gchar    buf[128];
@@ -28,7 +28,7 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
       }
 
    /* have to run this *BEFORE* any volume in/out stuff */
-   if(get_file_dimension_names(filename, &(pane->n_dims), &dim_names) != OK){
+   if(get_file_dimension_names(filename, &(pane->n_dims), &dim_names) != VIO_OK){
       return FALSE;
       }
 
@@ -87,7 +87,7 @@ int start_open_minc_file_to_pane(Pane_info pane, char *filename)
    /* start the volume input */
    if(start_volume_input(filename, pane->n_dims, axis_order_ptr,
                          NC_BYTE, FALSE, 0.0, 255.0,
-                         TRUE, &(pane->volume), &options, &(pane->input_info)) != OK){
+                         TRUE, &(pane->volume), &options, &(pane->input_info)) != VIO_OK){
       return FALSE;
       }
 
@@ -164,7 +164,7 @@ int continue_open_minc_file_to_pane(Pane_info pane)
 /* fills in the texmap pointer */
 int get_minc_image(Pane_info pane, View_info view)
 {
-   Volume   vol;
+   VIO_Volume   vol;
    unsigned char *ptr;
    double   x_start, x_stop;
    double   x_incr, y_incr;
