@@ -12,6 +12,15 @@
 #define TRUE   1
 #endif
 
+#ifndef M_PI
+#    define M_PI 3.14159265358979323846
+#endif
+
+#ifndef M_PI_2
+#    define M_PI_2 (M_PI/2)
+#endif
+
+
 #define MAX_SYNCHS 10
 #define MAX_TABLES 100
 #define MAX_VNUP_DIMS 5

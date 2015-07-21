@@ -11,6 +11,7 @@
 #include "trackball.h"
 #include "geometry.h"
 
+
 extern int verbose;
 
 /* internal function prototypes */
@@ -599,6 +600,16 @@ Pane_info add_pane(Main_info * ptr, int clone, Pane_info clone_pane, int merge)
 
    if(clone){
       g_print("can't add a clone pane yet\n");
+      
+      if(ptr->init_transverse){
+         g_ptr_array_add(pane->views, init_view_info(TRANSVERSE));
+         }
+      if(ptr->init_sagittal){
+         g_ptr_array_add(pane->views, init_view_info(SAGITTAL));
+         }
+      if(ptr->init_coronal){
+         g_ptr_array_add(pane->views, init_view_info(CORONAL));
+         }
       }
    else {
       /* setup initial views */
@@ -1005,7 +1016,7 @@ void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
 
    /* set up the panes name and title */
    g_string_sprintf(pane->file_name, "%s", text);
-   g_string_sprintf(pane->file_basename, "%s", g_basename(text));
+   g_string_sprintf(pane->file_basename, "%s", g_path_get_basename(text));
    update_pane_and_filename(pane);
    
    /* set up coordinate ranges and values */
@@ -1126,7 +1137,7 @@ void file_open_entry_activate(GtkEntry * entry, gpointer user_data)
    /* update the merge combos */
    update_merge_combos(ptr);
 
-   free(text);
+   g_free(text);
    }
 
 /* cmap callbacks    */
@@ -1288,7 +1299,7 @@ vsep_eventbox_motion_notify_event(GtkWidget * widget, GdkEventMotion * event,
 void cmap_file_ok_button_clicked(GtkButton * button, gpointer user_data)
 {
    Main_info *ptr = get_main_ptr();
-   char    *filename;
+   const char    *filename;
    Lookup_Table *lut;
    gchar    buf[128];
 
@@ -1322,7 +1333,7 @@ void cmap_file_ok_button_clicked(GtkButton * button, gpointer user_data)
       }
 
    gtk_widget_destroy(GTK_WIDGET(user_data));
-   }
+}
 
 /* scheme filesel callback */
 void scheme_ok_button_clicked(GtkButton * button, gpointer user_data)
@@ -1512,7 +1523,7 @@ void pi_view_type_combo_entry_changed(GtkEditable * editable, gpointer user_data
 {
    Main_info *ptr = (Main_info *) user_data;
    View_info view = ptr->c_pane->c_view;
-   gchar   *text;
+   const gchar   *text;
 
    text = gtk_entry_get_text(GTK_ENTRY(editable));
 
@@ -1862,7 +1873,7 @@ void pi_cmap_bluered_button_clicked(GtkButton * button, gpointer user_data)
 
 void pi_cmap_combo_entry_changed(GtkEditable * editable, gpointer user_data)
 {
-   gchar   *text;
+   const gchar   *text;
    Main_info *ptr = (Main_info *) user_data;
 
    text = gtk_entry_get_text(GTK_ENTRY(editable));
@@ -2027,7 +2038,7 @@ void pi_merge_combo_entry_changed(GtkEditable * editable, gpointer user_data)
 {
    Main_info *ptr = get_main_ptr();
    gint     merge_number = GPOINTER_TO_INT(user_data);
-   gchar   *text = gtk_entry_get_text(GTK_ENTRY(editable));
+   const gchar   *text = gtk_entry_get_text(GTK_ENTRY(editable));
    Pane_info pane;
    int      c;
 

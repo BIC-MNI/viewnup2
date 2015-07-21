@@ -236,7 +236,7 @@ View_info init_view_info(int type)
 {
    View_info view;
 
-   view = g_malloc(sizeof *view);
+   view = g_malloc0(sizeof *view);
 
    view->type = type;
    view->texmap_size[0] = 1;
@@ -314,7 +314,7 @@ Pane_info init_pane_info(Synch_info * synch)
    int      c;
    Pane_info pane;
 
-   pane = (Pane_info) g_malloc(sizeof(*pane));
+   pane = (Pane_info) g_malloc0(sizeof *pane);
 
    /* set the name and properties */
    pane->file_name = g_string_new(NULL);

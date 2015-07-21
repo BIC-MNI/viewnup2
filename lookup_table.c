@@ -38,7 +38,7 @@ GList   *get_cmaps_list(Main_info * ptr)
    return list;
    }
 
-Lookup_Table *get_cmap_ptr(char *cmap_name, Main_info * ptr)
+Lookup_Table *get_cmap_ptr(const char *cmap_name, Main_info * ptr)
 {
    int      c;
 
@@ -330,7 +330,7 @@ int store_table(Lookup_Table * lut, Main_info * ptr)
 @CREATED    : December 8, 1994 (Peter Neelin)
 @MODIFIED   : 
 ---------------------------------------------------------------------------- */
-Lookup_Table *read_lookup_table(char *lookup_filename)
+Lookup_Table *read_lookup_table(const char *lookup_filename)
 {
    Lookup_Table *lookup_table;
    FILE    *fp;
