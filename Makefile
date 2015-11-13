@@ -15,18 +15,19 @@ OBJS = $(HEADERS:.h=.o)
 
 CC = gcc -g
 
-WARNINGS = -Wall -Wunused -Wmissing-prototypes -Wmissing-declarations
+#WARNINGS = -Wall -Wunused -Wmissing-prototypes -Wmissing-declarations
+WARNINGS = -w
 
 # OPTIONS = -O3 $(WARNINGS) -DGTK_DISABLE_DEPRECATED=1
 OPTIONS = -O3 $(WARNINGS)
 
-INCLUDES = -I/usr/local/bic/include -I/usr/include \
+INCLUDES = -I/opt/minc-itk4/include -I/usr/include \
 	`pkg-config gtkglext-1.0 gtk+-2.0 glib-2.0 --cflags`
 CFLAGS = $(OPTIONS) $(INCLUDES)
 
-LDINCLUDES = -L/usr/local/bic/lib \
+LDINCLUDES = -L/opt/minc-itk4/lib \
 	`pkg-config gtkglext-1.0 gtk+-2.0 glib-2.0 --libs`
-LDLIBS = -lpopt -lGL -lGLU -lvolume_io2 -lminc2 -lhdf5 -lnetcdf -lm
+LDLIBS = -lpopt -lGL -lGLU -lminc2 -lhdf5 -lnetcdf -lm
 
 LDOPTS = $(LDINCLUDES) $(LDLIBS)
 

@@ -227,7 +227,7 @@ struct pane_info_struct {
    /* coordinates and COV */
    double   v[MAX_VNUP_DIMS];
    double   w[MAX_VNUP_DIMS];
-   
+
    double   cov[MAX_VNUP_DIMS];
 
    /* vector variables */
@@ -243,9 +243,9 @@ struct pane_info_struct {
 
    /* volume information and linear transform */
    double   perc_input;
-   Volume   volume;
+   VIO_Volume   volume;
    volume_input_struct input_info;
-   General_transform *transform;
+   VIO_General_transform *transform;
 
    /* pane widgets */
    GtkWidget *pane_frame;
@@ -315,11 +315,11 @@ struct pane_info_struct {
    };
 
 typedef struct {
-   
+
    /* signal and object ptrs */
    GArray  *signal_ids;
    GPtrArray *obj_ptrs;
-   
+
    GtkWidget *linear_interp_checkbutton;
    GtkWidget *vector_checkbutton;
    GtkWidget *perspective_checkbutton;

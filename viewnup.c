@@ -381,7 +381,7 @@ Pane_info init_pane_info(Synch_info * synch)
    /* init volume structures and transform */
    pane->perc_input = 0.0;
    pane->volume = NULL;
-   pane->transform = g_malloc(sizeof(General_transform));
+   pane->transform = g_malloc(sizeof(VIO_General_transform));
    create_linear_transform(pane->transform, NULL);
 
    /* merge adjustments and pane ptrs */
@@ -584,10 +584,10 @@ int main(int argc, char *argv[])
    int      c;
    int      init_synch_idx;
    poptContext pctx;
-   
+
    // temporary measure
    verbose = TRUE;
-   
+
 #ifdef ENABLE_NLS
    bindtextdomain(PACKAGE, PACKAGE_LOCALE_DIR);
    textdomain(PACKAGE);
@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
    if(verbose){
       g_print(_("Finished gtk & gtkgl init\n"));
       }
-   
+
    /* parse viewnup's remaining arguments */
 //   optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
 
@@ -644,7 +644,7 @@ int main(int argc, char *argv[])
    if(verbose){
       g_print(_("Initialised main info...\n"));
       }
-   
+
    /* create the main window and dialogs */
    ptr->main_widget = create_viewnup_main(ptr);
    ptr->synch_dialog = create_synch_dialog(ptr);
@@ -653,7 +653,7 @@ int main(int argc, char *argv[])
    if(verbose){
       g_print(_("Created and shown main widgets...\n"));
       }
-   
+
    /* initialize and configure Main gtkgl widget and context */
    configure_gtkgl(ptr);
    if(verbose){
@@ -674,10 +674,10 @@ int main(int argc, char *argv[])
          if(verbose){
             g_print(_("[%d] - %s\n"), c, infiles[c]);
             }
-         
+
          /* add the pane */
          pane = add_pane(ptr, FALSE, NULL, FALSE);
-         
+
          /* trigger the file-open callback */
          gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(pane->file_open_combo)->entry), infiles[c]);
          gtk_widget_activate(GTK_WIDGET(GTK_COMBO(pane->file_open_combo)->entry));
